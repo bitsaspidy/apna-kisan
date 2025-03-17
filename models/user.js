@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema({
     phonenumber: {
         type: String,
         required: true,
-        unique: true
+        unique: true  // ✅ Unique index created automatically
     },
     name: {
         type: String,
@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         required: true,
-        enum: ['farmer', 'vendor', 'admin'] // Customize as needed
+        enum: ['farmer', 'vendor', 'admin']
     },
     location: {
         type: String,
@@ -30,8 +30,7 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// ✅ Index for quick lookup on phone number
-userSchema.index({ phonenumber: 1 }, { unique: true });
+// ✅ Removed duplicate index declaration
+// userSchema.index({ phonenumber: 1 }, { unique: true });
 
-// ✅ Avoid OverwriteModelError in Vercel serverless environments
 module.exports = mongoose.models.User || mongoose.model('User', userSchema);
