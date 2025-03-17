@@ -9,7 +9,8 @@ module.exports = async (req, res) => {
     try {
         // Use a cached promise to prevent duplicate connections
         if (!connectionPromise) {
-            connectionPromise = connectToMongoDB("mongodb+srv://singhdevavratdevavrat07:iNuCi52KepuIWyk9@kisanapp.1jecy.mongodb.net/apnakisan?retryWrites=true&w=majority&appName=kisanapp");
+            console.log("Connection")
+            //connectionPromise = connectToMongoDB("mongodb+srv://singhdevavratdevavrat07:iNuCi52KepuIWyk9@kisanapp.1jecy.mongodb.net/apnakisan?retryWrites=true&w=majority&appName=kisanapp");
         }
 
         await connectionPromise;
