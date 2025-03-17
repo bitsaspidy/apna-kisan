@@ -1,8 +1,6 @@
 const Inventory = require('../models/inventory');
 const Product = require('../models/product');
 
-console.log("Check Product Error", Product);
-
 async function getInventoryByStatus (req, res) {
     try {
         const { status } = req.params;
