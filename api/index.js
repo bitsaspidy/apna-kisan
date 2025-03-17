@@ -3,10 +3,16 @@ const app = require('../app');
 const { connectToMongoDB } = require('../config');
 
 let serverlessHandler;
+let connectionPromise;
 
 module.exports = async (req, res) => {
     try {
-        await connectToMongoDB("mongodb+srv://singhdevavratdevavrat07:iNuCi52KepuIWyk9@kisanapp.1jecy.mongodb.net/apnakisan?retryWrites=true&w=majority&appName=kisanapp");  // Singleton connection
+        // Use a cached promise to prevent duplicate connections
+        if (!connectionPromise) {
+            connectionPromise = connectToMongoDB("mongodb+srv://singhdevavratdevavrat07:iNuCi52KepuIWyk9@kisanapp.1jecy.mongodb.net/apnakisan?retryWrites=true&w=majority&appName=kisanapp");
+        }
+
+        await connectionPromise;
 
         if (!serverlessHandler) {
             serverlessHandler = serverless(app);
