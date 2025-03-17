@@ -4,8 +4,7 @@ const axios = require('axios');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 require('dotenv').config();
-const {connectToMongoDB} = require('./config');
-
+const { connectToMongoDB } = require('./config');
 
 // Routes Require
 const authRouter = require('./routes/authRouter');
@@ -18,22 +17,23 @@ const translateMiddleware = require('./middleware/translateMiddleware');
 const app = express();
 
 // Middlewares
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended : false}));
+app.use(express.urlencoded({ extended : false }));
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(translateMiddleware);
 
-//Routes 
+// Routes 
 app.use('/auth', authRouter);
 app.use('/product', productRouter);
 app.use('/notifications', notificationRoute);
 app.use('/inventory', inventoryRoute);
 app.use('/translate', translateRoute);
 
-
+// Mongo Connection (lazy)
 connectToMongoDB("mongodb+srv://singhdevavratdevavrat07:iNuCi52KepuIWyk9@kisanapp.1jecy.mongodb.net/apnakisan?retryWrites=true&w=majority&appName=kisanapp")
-.then(()=>console.log("Connected to MongoDb"));
+    .then(() => console.log("Connected to MongoDb"))
+    .catch((err) => console.error("MongoDB connection error:", err));
 
-// Module Exports
 module.exports = app;
