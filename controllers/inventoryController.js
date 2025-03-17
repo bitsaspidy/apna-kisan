@@ -1,0 +1,83 @@
+const Inventory = require('../models/inventory');
+const Product = require('../models/product');
+
+console.log("Check Product Error", Product);
+
+async function getInventoryByStatus (req, res) {
+    try {
+        const { status } = req.params;
+
+        if (!['complete', 'ongoing', 'current'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid inventory status' });
+        }
+
+        const inventory = await Inventory.find({ status }).populate('productId');
+
+        res.status(200).json({ message: `Inventory for ${status}`, data: inventory });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+async function updateInventory(req, res) {
+    try {
+        const { inventoryId } = req.params;
+        const { quantity, status } = req.body;
+
+        if (!inventoryId) {
+            return res.status(400).json({
+                status: false,
+                message: 'Inventory ID is required'
+            });
+        }
+
+        const inventory = await Inventory.findById(inventoryId);
+        if (!inventory) {
+            return res.status(404).json({
+                status: false,
+                message: 'Inventory not found'
+            });
+        }
+        let quantityUpdated = false;
+
+        if (quantity !== undefined && !isNaN(quantity)) {
+            inventory.quantity = quantity;
+            quantityUpdated = true; 
+        }
+
+        if (status !== undefined) {
+            inventory.status = status;
+        }
+
+        const updatedInventory = await inventory.save();
+        if (quantityUpdated) {
+            const product = await Product.findById(inventory.productId);
+
+            if (product) {
+                product.quantity = quantity;
+                await product.save();
+                console.log(`Product quantity synced with inventory quantity: ${quantity}`);
+            } else {
+                console.warn(`No product found for inventory productId: ${inventory.productId}`);
+            }
+        }
+
+        res.status(200).json({
+            status: true,
+            message: 'Inventory updated successfully',
+            inventory: updatedInventory
+        });
+
+    } catch (error) {
+        console.error('Error updating inventory:', error);
+        res.status(500).json({
+            status: false,
+            message: 'Server error while updating inventory',
+            error: error.message
+        });
+    }
+}
+
+
+module.exports = {getInventoryByStatus, updateInventory };
