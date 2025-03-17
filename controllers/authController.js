@@ -1,108 +1,160 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
+
 const JWT_SECRET = process.env.JWT_SECRET;
+const otpStore = {}; // In-memory OTP storage (temporary, better to use Redis for production)
 
-const otpStore = {}; // Temporary store for OTPs
-
-
-// function for login the user
+/**
+ * Handle User Login - Sends OTP
+ */
 async function handleUserLogin(req, res) {
     const { phonenumber } = req.body;
+
     if (!phonenumber) {
-       return res.status(400).json({status: "error", message: "Please enter Phone number"});
+        return res.status(400).json({
+            status: "error",
+            message: "Please enter Phone number"
+        });
     }
 
-    // Generate a 6-digit random OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore[phonenumber] = otp;
+    try {
+        // Generate a 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
+        // Store OTP in memory (Consider using Redis for production)
+        otpStore[phonenumber] = otp;
 
-    return res.status(200).json({
-        status: true,
-        Number: phonenumber,
-        OTP: otp,
-        message: "Otp Send successfully"});
-};
+        console.log(`Generated OTP for ${phonenumber}: ${otp}`);
 
-// /function for verify the OTP
+        return res.status(200).json({
+            status: true,
+            phonenumber: phonenumber,
+            otp: otp,
+            message: "OTP sent successfully"
+        });
+    } catch (error) {
+        console.error('Error generating OTP:', error);
+        return res.status(500).json({
+            status: "error",
+            message: "Server error while generating OTP"
+        });
+    }
+}
+
+/**
+ * Handle OTP Verification and Login
+ */
 async function handleOtpVerification(req, res) {
     const { phonenumber, otp } = req.body;
 
     if (!phonenumber || !otp) {
-        return res.status(400).json({ status: "error", message: "Phone number and OTP are required" });
-    }
-
-    const storedOtp = otpStore[phonenumber];
-
-    if (!storedOtp || storedOtp !== otp) {
-        return res.status(400).json({ status: "error", message: "Invalid OTP" });
-    }
-
-    // OTP verified, delete from store
-    delete otpStore[phonenumber];
-
-    let user = await User.findOne({ phonenumber });
-
-    if (!user) {
         return res.status(400).json({
             status: "error",
-            register: false,
-            message: "OTP verified! Please registered first"
+            message: "Phone number and OTP are required"
         });
     }
 
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
-
     try {
+        const storedOtp = otpStore[phonenumber];
+
+        if (!storedOtp || storedOtp !== otp) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid OTP"
+            });
+        }
+
+        // OTP verified - delete it from the store
+        delete otpStore[phonenumber];
+
+        console.time('MongoFindOne');
+        let user = await User.findOne({ phonenumber });
+        console.timeEnd('MongoFindOne');
+
+        if (!user) {
+            return res.status(400).json({
+                status: "error",
+                register: false,
+                message: "OTP verified! Please register first"
+            });
+        }
+
+        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
+
         user.token = token;
         await user.save();
 
         return res.status(200).json({
             status: true,
             register: true,
-            message: "OTP Verified",
-            userID: user.id,
+            message: "OTP Verified. Login successful.",
+            userID: user._id,
             token: token
         });
+
     } catch (error) {
-        console.error('Error updating user token:', error);
-        return res.status(500).json({ status: "error", message: "Server error" });
+        console.error('Error during OTP verification:', error);
+        return res.status(500).json({
+            status: "error",
+            message: "Server error during OTP verification"
+        });
     }
 }
 
-// function for New User Registeration
+/**
+ * Handle User Registration
+ */
 async function handleUserRegister(req, res) {
-    const { phonenumber, name, role, location} = req.body;
+    const { phonenumber, name, role, location } = req.body;
 
-    if(!phonenumber || !name || !role ||!location) {
-        return res.status(400).json({ message: "Please enter full details"});
-    };
-
-    let user = await User.findOne({phonenumber});
-
-    if(user) {
-        return res.status(400).json({status: "error", message: "phonenumber already exists"});
+    if (!phonenumber || !name || !role || !location) {
+        return res.status(400).json({
+            message: "Please enter full details"
+        });
     }
 
-    user = new User({ phonenumber, name, role, location, isVerified: true });
+    try {
+        console.time('MongoFindUser');
+        let user = await User.findOne({ phonenumber });
+        console.timeEnd('MongoFindUser');
 
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
+        if (user) {
+            return res.status(400).json({
+                status: "error",
+                message: "Phone number already exists"
+            });
+        }
 
-    try{
+        user = new User({
+            phonenumber,
+            name,
+            role,
+            location,
+            isVerified: true
+        });
+
+        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
+
+        user.token = token;
+
         await user.save();
+
         return res.status(200).json({
             status: true,
             token: token,
-            message: "Registration successful.",
+            message: "Registration successful."
         });
-    } catch(error) {
-        return res.status(500).json({ status: "error", message: "Server error" });
+    } catch (error) {
+        console.error('Error during registration:', error);
+        return res.status(500).json({
+            status: "error",
+            message: "Server error during registration"
+        });
     }
-};
-
+}
 
 module.exports = {
     handleUserLogin,
     handleOtpVerification,
-    handleUserRegister,
-}
+    handleUserRegister
+};

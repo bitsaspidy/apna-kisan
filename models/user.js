@@ -1,36 +1,37 @@
 const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema({
-    phonenumber: { 
+    phonenumber: {
         type: String,
         required: true,
         unique: true
     },
-    isVerified: {
-         type: Boolean,
-          default: false 
-    },
     name: {
-         type: String,
-         required: true,
+        type: String,
+        required: true
     },
     role: {
         type: String,
-        enum: ["farmer", "trader"],
-        default: "farmer",
+        required: true,
+        enum: ['farmer', 'vendor', 'admin'] // Customize as needed
     },
     location: {
         type: String,
-        required: true,
-        max: 500,
+        required: true
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
     },
     token: {
         type: String
     }
-}, { timestamps: true } );
+}, {
+    timestamps: true
+});
 
-const User = mongoose.model('user', userSchema);
+// ✅ Index for quick lookup on phone number
+userSchema.index({ phonenumber: 1 }, { unique: true });
 
-module.exports = User;
-
+// ✅ Avoid OverwriteModelError in Vercel serverless environments
+module.exports = mongoose.models.User || mongoose.model('User', userSchema);
