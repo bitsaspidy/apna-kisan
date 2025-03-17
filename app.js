@@ -4,7 +4,6 @@ const axios = require('axios');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 require('dotenv').config();
-const { connectToMongoDB } = require('./config');
 
 // Routes Require
 const authRouter = require('./routes/authRouter');
@@ -30,10 +29,5 @@ app.use('/product', productRouter);
 app.use('/notifications', notificationRoute);
 app.use('/inventory', inventoryRoute);
 app.use('/translate', translateRoute);
-
-// Mongo Connection (lazy)
-connectToMongoDB("mongodb+srv://singhdevavratdevavrat07:iNuCi52KepuIWyk9@kisanapp.1jecy.mongodb.net/apnakisan?retryWrites=true&w=majority&appName=kisanapp")
-    .then(() => console.log("Connected to MongoDb"))
-    .catch((err) => console.error("MongoDB connection error:", err));
 
 module.exports = app;
