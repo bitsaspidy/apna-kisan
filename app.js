@@ -29,5 +29,12 @@ app.use('/product', productRouter);
 app.use('/notifications', notificationRoute);
 app.use('/inventory', inventoryRoute);
 app.use('/translate', translateRoute);
+// ✅ Health Check Route - Homepage
+app.get('/', (req, res) => {
+    res.status(200).json({
+        status: true,
+        message: 'APNA KISAN API is up and running 🚀'
+    });
+});
 
 module.exports = app;
