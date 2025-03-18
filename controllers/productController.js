@@ -2,9 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const Product = require('../models/product');
 const Inventory = require('../models/inventory');
+import dbConnect from '../lib/mongodb';
 
 // Add Product
 async function handleAddNewProduct(req, res) {
+    await dbConnect(); // ✅ dbConnect called
     const { productname, category, description, quantity, priceperquantity } = req.body;
     const imagePaths = req.files ? req.files.map(file => file.path) : [];
 
@@ -43,6 +45,7 @@ async function handleAddNewProduct(req, res) {
 
 // / Get all products
 async function handleGetAllProducts(req, res) {
+    await dbConnect(); // ✅ dbConnect called
     try {
         const products = await Product.find();
         res.status(200).json(products);
@@ -53,6 +56,7 @@ async function handleGetAllProducts(req, res) {
 
 // Get products by category
 async function handleGetProductByCategory (req, res) {
+    await dbConnect(); // ✅ dbConnect called
     try {
         const { category } = req.params;
 
@@ -70,6 +74,7 @@ async function handleGetProductByCategory (req, res) {
 
 // Get User Products
 async function handleGetUserProducts(req, res) {
+    await dbConnect(); // ✅ dbConnect called
     try {
         const products = await Product.find({ userId: req.userId });
         res.status(200).json(products);
@@ -83,6 +88,7 @@ const normalizePath = (filePath) => {
 };
 
 async function handleUpdateProduct(req, res) {
+    await dbConnect(); // ✅ dbConnect called
     const { productId } = req.params;
     const {
         productname,
@@ -197,6 +203,7 @@ async function handleUpdateProduct(req, res) {
 
 // Delete Product
 async function handleDeleteProduct (req, res) {
+    await dbConnect(); // ✅ dbConnect called
     const { productId } = req.params;
 
     try {

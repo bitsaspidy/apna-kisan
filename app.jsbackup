@@ -1,0 +1,63 @@
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const axios = require('axios');
+const cors = require('cors');
+require('dotenv').config();
+
+
+const app = express();
+
+// Middlewares
+app.use(cors());
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ limit: '1mb', extended: true }));
+app.use(cookieParser());
+
+// Health Check Route - Homepage ✅
+app.get('/', async (req, res) => {
+    try {
+      console.log('➡️ / route handler started');
+  
+      // Imagine some DB call or other logic here
+      // const data = await SomeModel.find(); 
+      // console.log('➡️ Data fetched', data);
+  
+      res.status(200).json({
+        status: true,
+        message: 'APNA KISAN API is working fine 🚀'
+      });
+  
+      console.log('➡️ / route handler completed');
+  
+    } catch (error) {
+      console.error('❌ Error in / route handler:', error);
+      res.status(500).json({
+        status: false,
+        message: 'Unexpected error'
+      });
+    }
+  });
+  
+const authRouter = require('./routes/authRouter');
+const productRouter = require('./routes/productRoute');
+const notificationRoute = require('./routes/notificationRoute');
+const inventoryRoute = require('./routes/inventoryRoute');
+const translateRoute = require('./routes/translateRoute');
+// Routes 
+app.use('/auth', authRouter);
+app.use('/product', productRouter);
+app.use('/notifications', notificationRoute);
+app.use('/inventory', inventoryRoute);
+app.use('/translate', translateRoute);
+
+app.use((err, req, res, next) => {
+    console.log(req)
+  console.error('Express Error Handler:', err);
+  res.status(500).json({
+    status: false,
+    message: 'Unexpected Error',
+    error: err.message
+  });
+});
+
+module.exports = app;

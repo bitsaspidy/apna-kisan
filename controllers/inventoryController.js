@@ -1,7 +1,9 @@
 const Inventory = require('../models/inventory');
 const Product = require('../models/product');
+import dbConnect from '../lib/mongodb';
 
 async function getInventoryByStatus (req, res) {
+    await dbConnect(); // ✅ dbConnect called
     try {
         const { status } = req.params;
 
@@ -19,6 +21,7 @@ async function getInventoryByStatus (req, res) {
 };
 
 async function updateInventory(req, res) {
+    await dbConnect(); // ✅ dbConnect called
     try {
         const { inventoryId } = req.params;
         const { quantity, status } = req.body;

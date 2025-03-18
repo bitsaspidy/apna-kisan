@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
+import dbConnect from '../lib/mongodb';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const otpStore = {}; // In-memory OTP storage (temporary, better to use Redis for production)
@@ -8,6 +9,7 @@ const otpStore = {}; // In-memory OTP storage (temporary, better to use Redis fo
  * Handle User Login - Sends OTP
  */
 async function handleUserLogin(req, res) {
+    await dbConnect(); // Ensure DB connection before any DB operation
     const { phonenumber } = req.body;
 
     if (!phonenumber) {
@@ -45,6 +47,7 @@ async function handleUserLogin(req, res) {
  * Handle OTP Verification and Login
  */
 async function handleOtpVerification(req, res) {
+    await dbConnect(); // Ensure DB connection before any DB operation
     const { phonenumber, otp } = req.body;
 
     if (!phonenumber || !otp) {
@@ -105,6 +108,7 @@ async function handleOtpVerification(req, res) {
  * Handle User Registration
  */
 async function handleUserRegister(req, res) {
+    await dbConnect(); // Ensure DB connection before any DB operation
     const { phonenumber, name, role, location } = req.body;
 
     if (!phonenumber || !name || !role || !location) {

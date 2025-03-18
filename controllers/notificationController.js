@@ -1,7 +1,9 @@
 const Notification = require('../models/notification');
+import dbConnect from '../lib/mongodb';
 
 // Send notification
 async function handleSendNotification(req, res){
+    await dbConnect(); // ✅ dbConnect called
     try {
         const { userId, title, message } = req.body;
 
@@ -21,6 +23,7 @@ async function handleSendNotification(req, res){
 
 // Get notifications for a user
 async function handleGetUserNotifications (req, res){
+    await dbConnect(); // ✅ dbConnect called
     try {
         const { userId } = req.params;
 
