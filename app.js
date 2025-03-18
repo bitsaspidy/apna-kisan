@@ -11,7 +11,7 @@ const productRouter = require('./routes/productRoute');
 const notificationRoute = require('./routes/notificationRoute');
 const inventoryRoute = require('./routes/inventoryRoute');
 const translateRoute = require('./routes/translateRoute');
-const translateMiddleware = require('./middleware/translateMiddleware');
+
 
 const app = express();
 
@@ -21,7 +21,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended : false }));
 app.use(cookieParser());
 app.use(bodyParser.json());
-app.use(translateMiddleware);
 
 // Routes 
 app.use('/auth', authRouter);
