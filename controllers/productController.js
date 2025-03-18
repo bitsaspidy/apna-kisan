@@ -48,7 +48,16 @@ async function handleGetAllProducts(req, res) {
     await dbConnect(); // ✅ dbConnect called
     try {
         const products = await Product.find();
-        res.status(200).json(products);
+        const productList = products.map(product => ({
+            ProductName: product.productname,
+            Category: product.category,
+            Description: product.description,
+            Price: product.priceperquantity
+        }));
+        res.status(200).json({
+            status: true,
+            Product: productList,
+        });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
@@ -66,7 +75,17 @@ async function handleGetProductByCategory (req, res) {
             return res.status(404).json({ message: 'No products found for this category' });
         }
 
-        res.status(200).json(products);
+        const productList = products.map(product => ({
+            ProductName: product.productname,
+            Category: product.category,
+            Description: product.description,
+            Price: product.priceperquantity
+        }));
+
+        res.status(200).json({
+            status: true,
+            Product: productList,
+        });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
@@ -130,16 +149,13 @@ async function handleUpdateProduct(req, res) {
             return res.status(403).json({ status: false, message: 'Unauthorized' });
         }
 
-        // ✅ Delete selected images
         if (imagesToDeleteArray.length > 0) {
             imagesToDeleteArray.forEach(imagePath => {
                 const normalizedImagePathToDelete = normalizePath(imagePath);
 
-                // ✅ Normalize stored image paths and compare
                 const index = product.images.findIndex(img => normalizePath(img) === normalizedImagePathToDelete);
 
                 if (index > -1) {
-                    // ✅ Remove from MongoDB array
                     product.images.splice(index, 1);
 
                     const absolutePath = path.resolve(imagePath);
