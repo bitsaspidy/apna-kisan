@@ -6,14 +6,20 @@ async function getInventoryByStatus (req, res) {
     await dbConnect(); // ✅ dbConnect called
     try {
         const { status } = req.params;
+        const loggedInUsers = req.userId;
 
         if (!['complete', 'ongoing', 'current'].includes(status)) {
             return res.status(400).json({ message: 'Invalid inventory status' });
         }
 
-        const inventory = await Inventory.find({ status }).populate('productId');
+        const inventory = await Inventory.find({ status, userId: loggedInUsers }).populate('productId');
+        const formattedInventory = inventory.map(item => ({
+            ProductName: item.productId?.productname,
+            Category: item.productId?.category,
+            Price: item.productId?.priceperquantity
+        }));
 
-        res.status(200).json({ message: `Inventory for ${status}`, data: inventory });
+        res.status(200).json({ message: `Inventory for ${status}`, data: formattedInventory });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });
