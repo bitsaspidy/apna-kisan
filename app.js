@@ -10,7 +10,7 @@ const productRouter = require('./routes/productRoute');
 const notificationRoute = require('./routes/notificationRoute');
 const inventoryRoute = require('./routes/inventoryRoute');
 const translateRoute = require('./routes/translateRoute');
-const translateMiddleware = require('./middleware/translateMiddleware');
+
 
 const app = express();
 
@@ -19,8 +19,6 @@ app.use(cors());
 app.use(express.json({ limit: '1mb' })); // Limit request size
 app.use(express.urlencoded({ limit: '1mb', extended: true }));
 app.use(cookieParser());
-app.use(translateMiddleware);
-
 // Routes 
 app.use('/auth', authRouter);
 app.use('/product', productRouter);
