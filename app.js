@@ -14,13 +14,12 @@ const translateRoute = require('./routes/translateRoute');
 
 const app = express();
 // ✅ Health Check Route - Homepage
-app.get('/', (req, res) => {
+app.get('/health', (req, res) => {
     console.log('➡️ / route called');
-    res.send("Hello")
-    // res.status(200).json({
-    //     status: true,
-    //     message: 'APNA KISAN API is up and running 🚀'
-    // });
+    res.json({
+        status: true,
+        message: 'APNA KISAN API is up and running 🚀'
+    });
 });
 // Middlewares
 app.use(cors());
