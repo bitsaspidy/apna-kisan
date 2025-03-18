@@ -155,10 +155,50 @@ async function handleUserRegister(req, res) {
             message: "Server error during registration"
         });
     }
-}
+};
+
+async function handleEditProfile(req, res) {
+    const { fullname, phonenumber, location } = req.body;
+
+    if (!fullname && !phonenumber && !location) {
+        return res.status(400).json({ status: "error", message: "Please provide data to update" });
+    }
+
+    try {
+        const user = await User.findById(req.userId);
+
+        if (!user) {
+            return res.status(404).json({ status: "error", message: "User not found" });
+        }
+
+        if (fullname) user.name = fullname;
+        if (phonenumber) user.phonenumber = phonenumber;
+        if (location) user.location = location;
+
+        await user.save();
+
+        res.status(200).json({
+            status: true,
+            message: "Profile updated successfully",
+            user: {
+                id: user._id,
+                fullname: user.name,
+                phonenumber: user.phonenumber,
+                location: user.location
+            }
+        });
+    } catch (err) {
+        res.status(500).json({
+            status: "error",
+            message: "Error updating profile",
+            error: err.message
+        });
+    }
+};
 
 module.exports = {
     handleUserLogin,
     handleOtpVerification,
-    handleUserRegister
+    handleUserRegister,
+    handleEditProfile
 };
