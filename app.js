@@ -13,7 +13,15 @@ const translateRoute = require('./routes/translateRoute');
 
 
 const app = express();
-
+// ✅ Health Check Route - Homepage
+app.get('/', (req, res) => {
+    console.log('➡️ / route called');
+    res.send("Hello")
+    // res.status(200).json({
+    //     status: true,
+    //     message: 'APNA KISAN API is up and running 🚀'
+    // });
+});
 // Middlewares
 app.use(cors());
 app.use(express.json({ limit: '1mb' })); // Limit request size
@@ -25,12 +33,16 @@ app.use('/product', productRouter);
 app.use('/notifications', notificationRoute);
 app.use('/inventory', inventoryRoute);
 app.use('/translate', translateRoute);
-// ✅ Health Check Route - Homepage
-app.get('/', (req, res) => {
-    res.status(200).json({
-        status: true,
-        message: 'APNA KISAN API is up and running 🚀'
+
+
+  app.use((err, req, res, next) => {
+    console.error('Express Error Handler:', err);
+    res.status(500).json({
+      status: false,
+      message: 'Unexpected Error',
+      error: err.message
     });
-});
+  });
+    
 
 module.exports = app;

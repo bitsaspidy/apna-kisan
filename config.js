@@ -1,18 +1,17 @@
 const mongoose = require('mongoose');
 
-let isConnected = false; // Global connection cache
+let isConnected = false;
 
 async function connectToMongoDB(uri) {
     if (isConnected) {
-        console.log('✅ Using existing MongoDB connection');
+        console.log('✅ Using cached MongoDB connection');
         return;
     }
 
     try {
         await mongoose.connect(uri);
-
         isConnected = true;
-        console.log('✅ MongoDB connected');
+        console.log('✅ MongoDB connected successfully!');
     } catch (error) {
         console.error('❌ MongoDB connection error:', error);
         throw error;
