@@ -193,9 +193,9 @@ async function handleUserRegister(req, res) {
 };
 
 async function handleEditProfile(req, res) {
-    const { fullname, phonenumber, location } = req.body;
+    const { name, phonenumber, location } = req.body;
 
-    if (!fullname && !phonenumber && !location) {
+    if (!name && !phonenumber && !location) {
         return res.status(400).json({ status: "error", message: "Please provide data to update" });
     }
 
@@ -206,7 +206,7 @@ async function handleEditProfile(req, res) {
             return res.status(404).json({ status: "error", message: "User not found" });
         }
 
-        if (fullname) user.name = fullname;
+        if (name) user.name = name;
         if (phonenumber) user.phonenumber = phonenumber;
         if (location) user.location = location;
 
@@ -217,7 +217,7 @@ async function handleEditProfile(req, res) {
             message: "Profile updated successfully",
             user: {
                 id: user._id,
-                fullname: user.name,
+                name: user.name,
                 phonenumber: user.phonenumber,
                 location: user.location
             }
