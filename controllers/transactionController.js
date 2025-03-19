@@ -17,9 +17,21 @@ async function handleAddTransactionDetail(req, res) {
         });
     
         await newTransaction.save();
-        res.status(201).json({ message: "Transaction Added Successfully", newTransaction });
+        res.status(201).json({
+          status: true, 
+          message: "Transaction Added Successfully", 
+          response: {
+            newTransaction                 
+          }
+        });
       } catch (error) {
-        res.status(500).json({ msg: "Server Error", error });
+        res.status(500).json({
+          status: false,
+          message: "Server Error", 
+          response: {                
+            error
+          }
+        });
       }
 };
 
@@ -31,9 +43,20 @@ async function handlereceiveTransactionDetail(req, res) {
             return res.status(404).json({ message: 'No Transcation was found' });
         }
 
-        res.status(200).json(transactions);
+        res.status(200).json({
+          status: true,
+          response: {
+            transactions                
+          }
+        });
       } catch (error) {
-        res.status(500).json({ msg: "Server Error", error });
+        res.status(500).json({
+          status: false,
+          message: "Server Error", 
+          response: {
+            error                 
+          }
+        });
       }
 };
 

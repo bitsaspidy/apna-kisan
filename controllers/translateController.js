@@ -10,13 +10,18 @@ async function handleLanguageTranslate(req, res) {
   try {
     const result = await translate(text, { to });
     res.json({
-      original_text: text,
-      translated_text: result,
-      language_to: to
+      status: true,
+      response: {                
+        original_text: text,
+        translated_text: result,
+        language_to: to
+      }
     });
   } catch (error) {
     console.error('Translation Error:', error);
-    res.status(500).json({ error: 'Translation failed' });
+    res.status(500).json({
+       error: 'Translation failed' 
+      });
   }
 };
 

@@ -11,7 +11,10 @@ async function handleAddNewProduct(req, res) {
     const imagePaths = req.files ? req.files.map(file => file.path) : [];
 
     if ( !productname || !category || !description || !quantity || !priceperquantity) {
-        return res.status(400).json({status: "error", message: "Please fill full details"});
+        return res.status(400).json({
+            status: false, 
+            message: "Please fill full details"
+        });
     }
 
     try {
@@ -37,9 +40,21 @@ async function handleAddNewProduct(req, res) {
         await newInventory.save();
         product.inventoryId = newInventory._id;
         await product.save();
-        res.status(200).json({status: true, message: 'Product added successfully', product });
+        res.status(200).json({
+            status: true, 
+            message: 'Product added successfully', 
+            response: {
+                product   
+            } 
+        });
     } catch (err) {
-        res.status(500).json({status: true, message: 'Error adding product', error: err.message });
+        res.status(500).json({
+            status: false, 
+            message: 'Error adding product', 
+            response: {                
+                error: err.message 
+            }
+        });
     }
 };
 
@@ -56,10 +71,18 @@ async function handleGetAllProducts(req, res) {
         }));
         res.status(200).json({
             status: true,
-            Product: productList,
+            response: {
+                Product: productList
+            }
         });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(500).json({
+            status: false,
+            message: 'Server error', 
+            response: {                
+                error: error.message 
+            }
+        });
     }
 };
 
@@ -72,7 +95,10 @@ async function handleGetProductByCategory (req, res) {
         const products = await Product.find({ category });
 
         if (products.length === 0) {
-            return res.status(404).json({ message: 'No products found for this category' });
+            return res.status(404).json({
+                status: false,
+                message: 'No products found for this category' 
+            });
         }
 
         const productList = products.map(product => ({
@@ -84,10 +110,18 @@ async function handleGetProductByCategory (req, res) {
 
         res.status(200).json({
             status: true,
-            Product: productList,
+            response: {                
+                Product: productList
+            }
         });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(500).json({
+            status: false,
+            message: 'Server error',
+            response: {
+                error: error.message                 
+            }
+        });
     }
 };
 
@@ -96,9 +130,20 @@ async function handleGetUserProducts(req, res) {
     await dbConnect(); // ✅ dbConnect called
     try {
         const products = await Product.find({ userId: req.userId });
-        res.status(200).json(products);
+        res.status(200).json({
+            status: true,
+            response: {
+                products
+            }
+        });
     } catch (err) {
-        res.status(500).json({ message: 'Error fetching products', error: err.message });
+        res.status(500).json({ 
+            status: false,
+            message: 'Error fetching products',
+            response: {
+                error: err.message                 
+            }
+        });
     }
 };
 
@@ -135,18 +180,27 @@ async function handleUpdateProduct(req, res) {
     }
 
     if (!productId) {
-        return res.status(400).json({ status: false, message: 'Product ID is required' });
+        return res.status(400).json({ 
+            status: false, 
+            message: 'Product ID is required' 
+        });
     }
 
     try {
         const product = await Product.findById(productId);
 
         if (!product) {
-            return res.status(404).json({ status: false, message: 'Product not found' });
+            return res.status(404).json({ 
+                status: false, 
+                message: 'Product not found' 
+            });
         }
 
         if (product.userId.toString() !== req.userId) {
-            return res.status(403).json({ status: false, message: 'Unauthorized' });
+            return res.status(403).json({ 
+                status: false, 
+                message: 'Unauthorized' 
+            });
         }
 
         if (imagesToDeleteArray.length > 0) {
@@ -204,7 +258,9 @@ async function handleUpdateProduct(req, res) {
         res.status(200).json({
             status: true,
             message: 'Product updated successfully',
-            product
+            response: {                
+                product
+            }
         });
 
     } catch (err) {
@@ -212,7 +268,9 @@ async function handleUpdateProduct(req, res) {
         res.status(500).json({
             status: false,
             message: 'Error updating product',
-            error: err.message
+            response: {
+                error: err.message
+            }
         });
     }
 }
@@ -224,11 +282,23 @@ async function handleDeleteProduct (req, res) {
 
     try {
         const product = await Product.findOneAndDelete({ _id: productId, userId: req.userId });
-        if (!product) return res.status(404).json({ message: 'Product not found' });
+        if (!product) return res.status(404).json({
+                status: false,
+                message: 'Product not found' 
+            });
         await Inventory.deleteMany({productId: productId});
-        res.status(200).json({ message: 'Product deleted successfully' });
+        res.status(200).json({
+            status: true,
+            message: 'Product deleted successfully' 
+            });
     } catch (err) {
-        res.status(500).json({ message: 'Error deleting product', error: err.message });
+        res.status(500).json({ 
+            status: false,
+            message: 'Error deleting product',
+            response: {
+                error: err.message                 
+            } 
+        });
     }
 };
 

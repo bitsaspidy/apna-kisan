@@ -1,4 +1,5 @@
 const Notification = require('../models/notification');
+import { response } from 'express';
 import dbConnect from '../lib/mongodb';
 
 // Send notification
@@ -8,16 +9,31 @@ async function handleSendNotification(req, res){
         const { userId, title, message } = req.body;
 
         if (!userId || !title || !message) {
-            return res.status(400).json({status: "error", message: 'All fields are required!' });
+            return res.status(400).json({
+                status: false, 
+                message: 'All fields are required!' 
+            });
         }
 
         const newNotification = new Notification({ userId, title, message });
         await newNotification.save();
 
-        res.status(200).json({status: true, message: 'Notification sent!', notification: newNotification });
+        res.status(200).json({
+            status: true, 
+            message: 'Notification sent!',
+            response: {
+                notification: newNotification                 
+            } 
+        });
 
     } catch (error) {
-        res.status(500).json({status: "error", message: 'Server error', error: error.message });
+        res.status(500).json({
+            status: false, 
+            message: 'Server error',
+            response: {                
+                error: error.message 
+            }
+            });
     }
 };
 
@@ -29,10 +45,20 @@ async function handleGetUserNotifications (req, res){
 
         const notifications = await Notification.find({ userId }).sort({ createdAt: -1 });
 
-        res.status(200).json({status: true, notifications});
-
+        res.status(200).json({
+            status: true,
+            response: {
+                notifications                
+            }
+        });
     } catch (error) {
-        res.status(500).json({status: "error", message: 'Server error', error: error.message });
+        res.status(500).json({
+            status: false,
+            message: 'Server error', 
+            response: {                
+                error: error.message 
+            }
+        });
     }
 };
 

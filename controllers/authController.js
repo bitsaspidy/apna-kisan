@@ -14,7 +14,7 @@ async function handleUserLogin(req, res) {
 
     if (!phonenumber) {
         return res.status(400).json({
-            status: "error",
+            status: false,
             message: "Please enter Phone number"
         });
     }
@@ -30,27 +30,25 @@ async function handleUserLogin(req, res) {
 
     try {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
         await Otp.deleteMany({ phonenumber });
 
         await Otp.create({ phonenumber, otp, expiresAt });
-
-        // Store OTP in memory (Consider using Redis for production)
-        // otpStore[phonenumber] = otp;
-
         console.log(`Generated OTP for ${phonenumber}: ${otp}`);
 
         return res.status(200).json({
             status: true,
+            message: "OTP has been sent successfully.",
+            response: {
             phonenumber: phonenumber,
-            otp: otp,
-            message: "OTP sent successfully"
+            otp: otp
+            }
         });
     } catch (error) {
         console.error('Error generating OTP:', error);
         return res.status(500).json({
-            status: "error",
+            status: false,
             message: "Server error while generating OTP"
         });
     }
@@ -65,7 +63,7 @@ async function handleOtpVerification(req, res) {
 
     if (!phonenumber || !otp) {
         return res.status(400).json({
-            status: "error",
+            status: false,
             message: "Phone number and OTP are required"
         });
     }
@@ -75,9 +73,9 @@ async function handleOtpVerification(req, res) {
 
         // const storedOtp = otpStore[phonenumber];
 
-        if (!otpRecord || otpRecord !== otp) {
+        if (!otpRecord) {
             return res.status(400).json({
-                status: "error",
+                status: false,
                 message: "Invalid OTP"
             });
         }
@@ -86,14 +84,12 @@ async function handleOtpVerification(req, res) {
             // OTP expired
             await Otp.deleteOne({ _id: otpRecord._id }); // optional: clean up
             return res.status(400).json({
-              status: "error",
+              status: false,
               message: "OTP has expired"
             });
           }
           await Otp.deleteOne({ _id: otpRecord._id });
 
-        // // OTP verified - delete it from the store
-        // delete otpStore[phonenumber];
 
         console.time('MongoFindOne');
         let user = await User.findOne({ phonenumber });
@@ -101,8 +97,7 @@ async function handleOtpVerification(req, res) {
 
         if (!user) {
             return res.status(400).json({
-                status: "error",
-                register: false,
+                status: true,
                 message: "OTP verified! Please register first"
             });
         }
@@ -114,16 +109,17 @@ async function handleOtpVerification(req, res) {
 
         return res.status(200).json({
             status: true,
-            register: true,
             message: "OTP Verified. Login successful.",
-            userID: user._id,
-            token: token
+            response: {
+                userId: user._id,
+                token: token
+            }
         });
 
     } catch (error) {
         console.error('Error during OTP verification:', error);
         return res.status(500).json({
-            status: "error",
+            status: false,
             message: "Server error during OTP verification"
         });
     }
@@ -138,6 +134,7 @@ async function handleUserRegister(req, res) {
 
     if (!phonenumber || !name || !role || !location) {
         return res.status(400).json({
+            status: false,
             message: "Please enter full details"
         });
     }
@@ -158,7 +155,7 @@ async function handleUserRegister(req, res) {
 
         if (user) {
             return res.status(400).json({
-                status: "error",
+                status: false,
                 message: "Phone number already exists"
             });
         }
@@ -179,13 +176,15 @@ async function handleUserRegister(req, res) {
 
         return res.status(200).json({
             status: true,
-            token: token,
-            message: "Registration successful."
+            message: "Registration successful.",
+            response: {
+                token: token,
+            }
         });
     } catch (error) {
         console.error('Error during registration:', error);
         return res.status(500).json({
-            status: "error",
+            status: false,
             message: "Server error during registration"
         });
     }
@@ -214,7 +213,7 @@ async function handleEditProfile(req, res) {
         res.status(200).json({
             status: true,
             message: "Profile updated successfully",
-            user: {
+            response: {
                 id: user._id,
                 name: user.name,
                 phonenumber: user.phonenumber,
@@ -223,9 +222,11 @@ async function handleEditProfile(req, res) {
         });
     } catch (err) {
         res.status(500).json({
-            status: "error",
+            status: false,
             message: "Error updating profile",
-            error: err.message
+            response: {
+                error: err.message
+            }
         });
     }
 };
