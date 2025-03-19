@@ -191,6 +191,7 @@ async function handleUserRegister(req, res) {
 };
 
 async function handleEditProfile(req, res) {
+    await dbConnect(); // Ensure DB connection before any DB operation
     const { name, phonenumber, location } = req.body;
 
     if (!name && !phonenumber && !location) {
