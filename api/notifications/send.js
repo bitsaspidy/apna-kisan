@@ -1,4 +1,4 @@
-import { handleSendNotification } from '../../../controllers/notificationController';
+import { handleSendNotification } from '../../controllers/notificationController';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {

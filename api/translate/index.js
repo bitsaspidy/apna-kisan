@@ -1,4 +1,4 @@
-import { handleLanguageTranslate } from '../../../controllers/translateController';
+import { handleLanguageTranslate } from '../../controllers/translateController';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
