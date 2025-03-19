@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 import dbConnect from '../lib/mongodb';
 
 const JWT_SECRET = process.env.JWT_SECRET;
-const otpStore = {}; // In-memory OTP storage (temporary, better to use Redis for production)
+// const otpStore = {}; // In-memory OTP storage (temporary, better to use Redis for production)
 
 /**
  * Handle User Login - Sends OTP
@@ -19,12 +19,26 @@ async function handleUserLogin(req, res) {
         });
     }
 
+    const phoneRegex = /^\d{10}$/;
+
+    if (!phoneRegex.test(phonenumber)) {
+        return res.status(400).json({
+            status: false,
+            message: "Phone number must be exactly 10 digits."
+        });
+    }
+
     try {
         // Generate a 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+        await Otp.deleteMany({ phonenumber });
+
+        await Otp.create({ phonenumber, otp, expiresAt });
 
         // Store OTP in memory (Consider using Redis for production)
-        otpStore[phonenumber] = otp;
+        // otpStore[phonenumber] = otp;
 
         console.log(`Generated OTP for ${phonenumber}: ${otp}`);
 
@@ -58,17 +72,29 @@ async function handleOtpVerification(req, res) {
     }
 
     try {
-        const storedOtp = otpStore[phonenumber];
+        const otpRecord = await Otp.findOne({ phonenumber, otp });
 
-        if (!storedOtp || storedOtp !== otp) {
+        // const storedOtp = otpStore[phonenumber];
+
+        if (!otpRecord || otpRecord !== otp) {
             return res.status(400).json({
                 status: "error",
                 message: "Invalid OTP"
             });
         }
 
-        // OTP verified - delete it from the store
-        delete otpStore[phonenumber];
+        if (otpRecord.expiresAt < new Date()) {
+            // OTP expired
+            await Otp.deleteOne({ _id: otpRecord._id }); // optional: clean up
+            return res.status(400).json({
+              status: "error",
+              message: "OTP has expired"
+            });
+          }
+          await Otp.deleteOne({ _id: otpRecord._id });
+
+        // // OTP verified - delete it from the store
+        // delete otpStore[phonenumber];
 
         console.time('MongoFindOne');
         let user = await User.findOne({ phonenumber });
@@ -114,6 +140,15 @@ async function handleUserRegister(req, res) {
     if (!phonenumber || !name || !role || !location) {
         return res.status(400).json({
             message: "Please enter full details"
+        });
+    }
+
+    const phoneRegex = /^\d{10}$/;
+
+    if (!phoneRegex.test(phonenumber)) {
+        return res.status(400).json({
+            status: false,
+            message: "Phone number must be exactly 10 digits."
         });
     }
 
