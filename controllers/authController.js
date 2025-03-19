@@ -75,7 +75,7 @@ async function handleOtpVerification(req, res) {
 
         // const storedOtp = otpStore[phonenumber];
 
-        if (!otpRecord || otpRecord !== otp) {
+        if (!otpRecord) {
             return res.status(400).json({
                 status: "error",
                 message: "Invalid OTP"
