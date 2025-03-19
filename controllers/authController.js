@@ -1,9 +1,9 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 import dbConnect from '../lib/mongodb';
+const Otp = require("../models/otp");
 
 const JWT_SECRET = process.env.JWT_SECRET;
-// const otpStore = {}; // In-memory OTP storage (temporary, better to use Redis for production)
 
 /**
  * Handle User Login - Sends OTP
@@ -29,7 +29,6 @@ async function handleUserLogin(req, res) {
     }
 
     try {
-        // Generate a 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 

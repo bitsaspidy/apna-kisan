@@ -1,6 +1,6 @@
-import { handleUserLogin } from '../../controllers/authController';
+import { handleUserLogin } from '../../../controllers/authController.js';
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method === 'POST') {
     return handleUserLogin(req, res);
   }
