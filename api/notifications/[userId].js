@@ -1,6 +1,6 @@
-import { handleGetUserNotifications } from '../../../controllers/notificationController';
-import authMiddleware from '../../../middleware/authMiddleware';
-import translateMiddleware from '../../../middleware/translateMiddleware';
+import { handleGetUserNotifications } from '../../controllers/notificationController';
+import authMiddleware from '../../middleware/authMiddleware';
+import translateMiddleware from '../../middleware/translateMiddleware';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {

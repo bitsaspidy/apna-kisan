@@ -1,5 +1,5 @@
-import { updateInventory } from '../../../../controllers/inventoryController';
-import authMiddleware from '../../../../middleware/authMiddleware';
+import { updateInventory } from '../../../controllers/inventoryController';
+import authMiddleware from '../../../middleware/authMiddleware';
 
 export default async function handler(req, res) {
   if (req.method === 'PUT') {

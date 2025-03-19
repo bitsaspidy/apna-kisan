@@ -1,6 +1,6 @@
-import { getInventoryByStatus } from '../../../controllers/inventoryController';
-import authMiddleware from '../../../middleware/authMiddleware';
-import translateMiddleware from '../../../middleware/translateMiddleware';
+import { getInventoryByStatus } from '../../controllers/inventoryController';
+import authMiddleware from '../../middleware/authMiddleware';
+import translateMiddleware from '../../middleware/translateMiddleware';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
