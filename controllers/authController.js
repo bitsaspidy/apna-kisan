@@ -29,7 +29,7 @@ async function handleUserLogin(req, res) {
     }
 
     try {
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otp = Math.floor(10000 + Math.random() * 90000).toString();
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
         await Otp.deleteMany({ phonenumber });
@@ -102,7 +102,7 @@ async function handleOtpVerification(req, res) {
             });
         }
 
-        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ id: user._id }, JWT_SECRET);
 
         user.token = token;
         await user.save();
@@ -168,7 +168,7 @@ async function handleUserRegister(req, res) {
             isVerified: true
         });
 
-        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ id: user._id }, JWT_SECRET);
 
         user.token = token;
 
