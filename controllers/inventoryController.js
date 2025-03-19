@@ -1,5 +1,6 @@
 const Inventory = require('../models/inventory');
 const Product = require('../models/product');
+import { response } from 'express';
 import dbConnect from '../lib/mongodb';
 
 async function getInventoryByStatus (req, res) {
@@ -19,10 +20,22 @@ async function getInventoryByStatus (req, res) {
             Price: item.productId?.priceperquantity
         }));
 
-        res.status(200).json({ message: `Inventory for ${status}`, data: formattedInventory });
+        res.status(200).json({
+            status: true,
+            message: `Inventory for ${status}`, 
+            response: {
+                Inventory: formattedInventory 
+            },
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(500).json({
+            status: false,
+            message: 'Server error', 
+            response: {
+                error: error.message 
+            }                
+        });
     }
 };
 
@@ -73,7 +86,9 @@ async function updateInventory(req, res) {
         res.status(200).json({
             status: true,
             message: 'Inventory updated successfully',
-            inventory: updatedInventory
+            response: {
+                inventory: updatedInventory
+            }
         });
 
     } catch (error) {
@@ -81,7 +96,9 @@ async function updateInventory(req, res) {
         res.status(500).json({
             status: false,
             message: 'Server error while updating inventory',
-            error: error.message
+            response: {                
+                error: error.message
+            }
         });
     }
 }
