@@ -1,6 +1,6 @@
 import { handleUpdateProduct } from '../../../controllers/productController';
 import authMiddleware from '../../../middleware/authMiddleware';
-import uploadMiddleware from '../../../multer/multerconfig';
+import upload from '../../../multer/multerconfig';
 
 export const config = {
   api: {
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     });
 
     await new Promise((resolve, reject) => {
-      uploadMiddleware.array('images', 5)(req, res, (err) => {
+      upload.array('images', 5)(req, res, (err) => {
         if (err) return reject(err);
         return resolve();
       });
