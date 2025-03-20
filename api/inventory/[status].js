@@ -28,10 +28,10 @@ export default async function handler(req, res) {
       return getInventoryByStatus(req, res);
     } catch (error) {
       console.error('Error in inventory [status]:', error);
-      res.status(500).json({ message: 'Server error', error: error.message });
+      res.status(200).json({ message: 'Server error', error: error.message });
     }
   }
 
   res.setHeader('Allow', ['GET']);
-  res.status(405).end(`Method ${req.method} Not Allowed`);
+  res.status(200).end(`Method ${req.method} Not Allowed`);
 }

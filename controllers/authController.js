@@ -157,7 +157,7 @@ async function handleOtpVerification(req, res) {
  */
 async function handleUserRegister(req, res) {
     await dbConnect(); // Ensure DB connection before any DB operation
-    const { phonenumber, name, role, location } = req.body;
+    let { phonenumber, name, role, location } = req.body;
 
     if (!phonenumber || !name || !role || !location) {
         return res.status(200).json({
@@ -188,6 +188,7 @@ async function handleUserRegister(req, res) {
         let user = await User.findOne({ phonenumber });
         console.timeEnd('MongoFindUser');
 
+        role = role.toLowerCase();
         if (user) {
             return res.status(200).json({
                 status: false,
