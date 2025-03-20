@@ -11,7 +11,7 @@ async function handleAddNewProduct(req, res) {
     const imagePaths = req.files ? req.files.map(file => file.path) : [];
 
     if ( !productname || !category || !description || !quantity || !priceperquantity) {
-        return res.status(400).json({
+        return res.status(200).json({
             status: false, 
             message: "Please fill full details"
         });
@@ -48,7 +48,7 @@ async function handleAddNewProduct(req, res) {
             } 
         });
     } catch (err) {
-        res.status(500).json({
+        res.status(200).json({
             status: false, 
             message: 'Error adding product', 
             response: {                
@@ -76,7 +76,7 @@ async function handleGetAllProducts(req, res) {
             }
         });
     } catch (error) {
-        res.status(500).json({
+        res.status(200).json({
             status: false,
             message: 'Server error', 
             response: {                
@@ -95,7 +95,7 @@ async function handleGetProductByCategory (req, res) {
         const products = await Product.find({ category });
 
         if (products.length === 0) {
-            return res.status(404).json({
+            return res.status(200).json({
                 status: false,
                 message: 'No products found for this category' 
             });
@@ -115,7 +115,7 @@ async function handleGetProductByCategory (req, res) {
             }
         });
     } catch (error) {
-        res.status(500).json({
+        res.status(200).json({
             status: false,
             message: 'Server error',
             response: {
@@ -137,7 +137,7 @@ async function handleGetUserProducts(req, res) {
             }
         });
     } catch (err) {
-        res.status(500).json({ 
+        res.status(200).json({ 
             status: false,
             message: 'Error fetching products',
             response: {
@@ -180,7 +180,7 @@ async function handleUpdateProduct(req, res) {
     }
 
     if (!productId) {
-        return res.status(400).json({ 
+        return res.status(200).json({ 
             status: false, 
             message: 'Product ID is required' 
         });
@@ -190,14 +190,14 @@ async function handleUpdateProduct(req, res) {
         const product = await Product.findById(productId);
 
         if (!product) {
-            return res.status(404).json({ 
+            return res.status(200).json({ 
                 status: false, 
                 message: 'Product not found' 
             });
         }
 
         if (product.userId.toString() !== req.userId) {
-            return res.status(403).json({ 
+            return res.status(200).json({ 
                 status: false, 
                 message: 'Unauthorized' 
             });
@@ -265,7 +265,7 @@ async function handleUpdateProduct(req, res) {
 
     } catch (err) {
         console.error('Error updating product:', err);
-        res.status(500).json({
+        res.status(200).json({
             status: false,
             message: 'Error updating product',
             response: {
@@ -282,7 +282,7 @@ async function handleDeleteProduct (req, res) {
 
     try {
         const product = await Product.findOneAndDelete({ _id: productId, userId: req.userId });
-        if (!product) return res.status(404).json({
+        if (!product) return res.status(200).json({
                 status: false,
                 message: 'Product not found' 
             });
@@ -292,7 +292,7 @@ async function handleDeleteProduct (req, res) {
             message: 'Product deleted successfully' 
             });
     } catch (err) {
-        res.status(500).json({ 
+        res.status(200).json({ 
             status: false,
             message: 'Error deleting product',
             response: {
@@ -309,7 +309,7 @@ async function searchProduct(req, res){
     const searchQuery = req.query.q;
 
     if (!searchQuery) {
-        return res.status(400).json({ message: 'Please provide a search query.' });
+        return res.status(200).json({ message: 'Please provide a search query.' });
     }
 
     try {
@@ -331,7 +331,7 @@ async function searchProduct(req, res){
         const results = await Product.find(query);
 
         if (results.length === 0) {
-            return res.status(404).json({
+            return res.status(200).json({
                 status: false,
                 message: 'No result was found.',
                 response: null,
@@ -349,7 +349,7 @@ async function searchProduct(req, res){
 
     } catch (error) {
         console.error('Search Error:', error);
-        res.status(500).json({
+        res.status(200).json({
             status: false,
             message: 'Internal server error',
             response: null,
