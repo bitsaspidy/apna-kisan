@@ -1,6 +1,6 @@
 import { handleEditProfile } from '../../controllers/authController';
 
-import authMiddleware from '../../../../middleware/authMiddleware';
+import authMiddleware from '../../middleware/authMiddleware';
 
 export default async function handler(req, res) {
   if (req.method === 'PUT') {

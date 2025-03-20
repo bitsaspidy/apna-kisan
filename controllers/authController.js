@@ -102,7 +102,7 @@ async function handleOtpVerification(req, res) {
             });
         }
 
-        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ id: user._id }, JWT_SECRET);
 
         user.token = token;
         await user.save();
@@ -168,7 +168,7 @@ async function handleUserRegister(req, res) {
             isVerified: true
         });
 
-        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ id: user._id }, JWT_SECRET);
 
         user.token = token;
 
@@ -191,6 +191,7 @@ async function handleUserRegister(req, res) {
 };
 
 async function handleEditProfile(req, res) {
+    await dbConnect();
     const { name, phonenumber, location } = req.body;
 
     if (!name && !phonenumber && !location) {
