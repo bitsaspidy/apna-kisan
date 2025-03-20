@@ -10,7 +10,11 @@ async function getInventoryByStatus (req, res) {
         const loggedInUsers = req.userId;
 
         if (!['complete', 'ongoing', 'current'].includes(status)) {
-            return res.status(400).json({ message: 'Invalid inventory status' });
+            return res.status(400).json({ 
+                status: false,
+                message: 'Invalid inventory status',
+                response: null
+            });
         }
 
         const inventory = await Inventory.find({ status, userId: loggedInUsers }).populate('productId');
