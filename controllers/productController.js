@@ -302,6 +302,55 @@ async function handleDeleteProduct (req, res) {
     }
 };
 
+// Search Function
+
+async function searchProduct(req, res){
+    const searchQuery = req.query.q;
+
+    if (!searchQuery) {
+        return res.status(400).json({ message: 'Please provide a search query.' });
+    }
+
+    try {
+        const searchRegex = new RegExp(searchQuery, 'i'); // case-insensitive
+
+        const results = await Product.find({
+            $or: [
+                { productname: searchRegex },
+                { category: searchRegex },
+                { description: searchRegex },
+                { priceperquantity: searchRegex },
+                { quantity: searchRegex }
+            ]
+        });
+
+        if (results.length === 0) {
+            return res.status(404).json({
+                status: false,
+                message: 'No result was found.',
+                response: null,
+             });
+        }
+
+        res.status(200).json({
+            status: true,
+            message: 'Search successful',
+            response: {
+                totalResults: results.length,
+                result: results
+            }
+        });
+
+    } catch (error) {
+        console.error('Search Error:', error);
+        res.status(500).json({
+            status: false,
+            message: 'Internal server error',
+            response: null,
+        });
+    }
+};
+
 
 module.exports = {
     handleAddNewProduct,
@@ -310,5 +359,6 @@ module.exports = {
     handleUpdateProduct,
     handleDeleteProduct,
     handleGetUserProducts,
+    searchProduct,
 }
 
