@@ -15,7 +15,8 @@ async function handleUserLogin(req, res) {
     if (!phonenumber) {
         return res.status(400).json({
             status: false,
-            message: "Please enter Phone number"
+            message: "Please enter Phone number",
+            response: null
         });
     }
 
@@ -24,7 +25,8 @@ async function handleUserLogin(req, res) {
     if (!phoneRegex.test(phonenumber)) {
         return res.status(400).json({
             status: false,
-            message: "Phone number must be exactly 10 digits."
+            message: "Phone number must be exactly 10 digits.",
+            response: null
         });
     }
 
@@ -49,7 +51,8 @@ async function handleUserLogin(req, res) {
         console.error('Error generating OTP:', error);
         return res.status(500).json({
             status: false,
-            message: "Server error while generating OTP"
+            message: "Server error while generating OTP",
+            response: null
         });
     }
 }
@@ -64,7 +67,8 @@ async function handleOtpVerification(req, res) {
     if (!phonenumber || !otp) {
         return res.status(400).json({
             status: false,
-            message: "Phone number and OTP are required"
+            message: "Phone number and OTP are required",
+            response: null
         });
     }
 
@@ -76,7 +80,8 @@ async function handleOtpVerification(req, res) {
         if (!otpRecord) {
             return res.status(400).json({
                 status: false,
-                message: "Invalid OTP"
+                message: "Invalid OTP",
+                response: null,
             });
         }
 
@@ -85,7 +90,8 @@ async function handleOtpVerification(req, res) {
             await Otp.deleteOne({ _id: otpRecord._id }); // optional: clean up
             return res.status(400).json({
               status: false,
-              message: "OTP has expired"
+              message: "OTP has expired",
+              response: null
             });
           }
           await Otp.deleteOne({ _id: otpRecord._id });
@@ -98,7 +104,7 @@ async function handleOtpVerification(req, res) {
         if (!user) {
             return res.status(400).json({
                 status: true,
-                message: "OTP verified! Please register first"
+                message: "OTP verified! Please register first",
             });
         }
 
@@ -112,6 +118,10 @@ async function handleOtpVerification(req, res) {
             message: "OTP Verified. Login successful.",
             response: {
                 userId: user._id,
+                phonenumber: user.phonenumber,
+                name: user.name,
+                location: user.location,
+                role: user.role,
                 token: token
             }
         });
@@ -135,7 +145,8 @@ async function handleUserRegister(req, res) {
     if (!phonenumber || !name || !role || !location) {
         return res.status(400).json({
             status: false,
-            message: "Please enter full details"
+            message: "Please enter full details",
+            response: null
         });
     }
 
@@ -144,7 +155,8 @@ async function handleUserRegister(req, res) {
     if (!phoneRegex.test(phonenumber)) {
         return res.status(400).json({
             status: false,
-            message: "Phone number must be exactly 10 digits."
+            message: "Phone number must be exactly 10 digits.",
+            response: null
         });
     }
 
@@ -156,7 +168,8 @@ async function handleUserRegister(req, res) {
         if (user) {
             return res.status(400).json({
                 status: false,
-                message: "Phone number already exists"
+                message: "Phone number already exists",
+                response: null
             });
         }
 
@@ -178,6 +191,11 @@ async function handleUserRegister(req, res) {
             status: true,
             message: "Registration successful.",
             response: {
+                userId: user._id,
+                phonenumber: user.phonenumber,
+                name: user.name,
+                location: user.location,
+                role: user.role,
                 token: token,
             }
         });
@@ -185,7 +203,8 @@ async function handleUserRegister(req, res) {
         console.error('Error during registration:', error);
         return res.status(500).json({
             status: false,
-            message: "Server error during registration"
+            message: "Server error during registration",
+            response: null
         });
     }
 };
@@ -225,9 +244,7 @@ async function handleEditProfile(req, res) {
         res.status(500).json({
             status: false,
             message: "Error updating profile",
-            response: {
-                error: err.message
-            }
+            response: null
         });
     }
 };
