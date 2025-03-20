@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         enum: ['farmer', 'trader', 'admin'],
+        default: 'farmer'
     },
     location: {
         type: String,
