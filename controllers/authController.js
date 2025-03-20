@@ -68,10 +68,7 @@ async function handleOtpVerification(req, res) {
         return res.status(400).json({
             status: false,
             message: "Phone number and OTP are required",
-            response: {
-                userId: "",
-                token: "",
-            }
+            response: null
         });
     }
 
@@ -84,10 +81,7 @@ async function handleOtpVerification(req, res) {
             return res.status(400).json({
                 status: false,
                 message: "Invalid OTP",
-                response: {
-                    userId: "",
-                    token: "",
-                }
+                response: null,
             });
         }
 
@@ -97,10 +91,7 @@ async function handleOtpVerification(req, res) {
             return res.status(400).json({
               status: false,
               message: "OTP has expired",
-              response: {
-                userId: "",
-                token: "",
-            }
+              response: null
             });
           }
           await Otp.deleteOne({ _id: otpRecord._id });
@@ -143,7 +134,11 @@ async function handleOtpVerification(req, res) {
         console.error('Error during OTP verification:', error);
         return res.status(500).json({
             status: false,
-            message: "Server error during OTP verification"
+            message: "Server error during OTP verification",
+            response: {
+                userId: '',
+                token: ''
+            }
         });
     }
 }
@@ -159,14 +154,7 @@ async function handleUserRegister(req, res) {
         return res.status(400).json({
             status: false,
             message: "Please enter full details",
-            response: {
-                userId: '',
-                phonenumber: '',
-                name: '',
-                location: '',
-                role: '',
-                token: ''
-            }
+            response: null
         });
     }
 
@@ -176,14 +164,7 @@ async function handleUserRegister(req, res) {
         return res.status(400).json({
             status: false,
             message: "Phone number must be exactly 10 digits.",
-            response: {
-                userId: '',
-                phonenumber: '',
-                name: '',
-                location: '',
-                role: '',
-                token: ''
-            }
+            response: null
         });
     }
 
@@ -196,14 +177,7 @@ async function handleUserRegister(req, res) {
             return res.status(400).json({
                 status: false,
                 message: "Phone number already exists",
-                response: {
-                    userId: '',
-                    phonenumber: '',
-                    name: '',
-                    location: '',
-                    role: '',
-                    token: ''
-                }
+                response: null
             });
         }
 
@@ -238,7 +212,10 @@ async function handleUserRegister(req, res) {
         return res.status(500).json({
             status: false,
             message: "Server error during registration",
-            response: null
+            response: {
+                userId: '',
+                token: ''
+            }
         });
     }
 };
