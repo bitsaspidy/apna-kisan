@@ -21,9 +21,9 @@ export default async function handler(req, res) {
         });
       });
 
-      // Extract userId from dynamic route param
-      const { userId } = req.query;
-      req.params = { userId };
+       // Extract userId from dynamic route param
+      // const { userId } = req.query;
+      // req.params = { userId };
 
       return handleGetUserNotifications(req, res);
     } catch (error) {
