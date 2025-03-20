@@ -40,11 +40,8 @@ async function handleSendNotification(req, res){
 // Get notifications for a user
 async function handleGetUserNotifications (req, res){
     await dbConnect(); // ✅ dbConnect called
-    try {
-        const { userId } = req.params;
-
-        const notifications = await Notification.find({ userId }).sort({ createdAt: -1 });
-
+    try {   
+        const notifications = await Notification.find({ userId: req.userId });
         res.status(200).json({
             status: true,
             response: {

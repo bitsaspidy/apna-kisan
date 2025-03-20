@@ -305,6 +305,7 @@ async function handleDeleteProduct (req, res) {
 // Search Function
 
 async function searchProduct(req, res){
+    await dbConnect();
     const searchQuery = req.query.q;
 
     if (!searchQuery) {
@@ -352,6 +353,8 @@ async function searchProduct(req, res){
             status: false,
             message: 'Internal server error',
             response: null,
+            error: error,
+            errormessage: error.message
         });
     }
 };
