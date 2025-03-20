@@ -103,8 +103,9 @@ async function handleOtpVerification(req, res) {
 
         if (!user) {
             return res.status(400).json({
-                status: true,
+                status: false,
                 message: "OTP verified! Please register first",
+                response: null
             });
         }
 
