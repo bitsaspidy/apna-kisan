@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         required: true,
-        enum: ['farmer', 'vendor', 'admin']
+        enum: ['farmer', 'trader', 'admin'],
     },
     location: {
         type: String,
