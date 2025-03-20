@@ -314,20 +314,15 @@ async function searchProduct(req, res){
     try {
         const searchRegex = new RegExp(searchQuery, 'i'); // case-insensitive
 
-        let query = {
+        const results = await Product.find({
             $or: [
                 { productname: searchRegex },
                 { category: searchRegex },
-                { description: searchRegex }
+                { description: searchRegex },
+                { priceperquantity: searchRegex },
+                { quantity: searchRegex }
             ]
-        };
-
-        if (!isNaN(searchQuery)) {
-            query.$or.push({ quantity: Number(searchQuery) });
-            query.$or.push({ priceperquantity: Number(searchQuery) });
-        }
-
-        const results = await Product.find(query);
+        });
 
         if (results.length === 0) {
             return res.status(404).json({
