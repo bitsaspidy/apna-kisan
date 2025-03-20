@@ -9,7 +9,7 @@ async function handleSendNotification(req, res){
         const { userId, title, message } = req.body;
 
         if (!userId || !title || !message) {
-            return res.status(400).json({
+            return res.status(200).json({
                 status: false, 
                 message: 'All fields are required!' 
             });
@@ -27,7 +27,7 @@ async function handleSendNotification(req, res){
         });
 
     } catch (error) {
-        res.status(500).json({
+        res.status(200).json({
             status: false, 
             message: 'Server error',
             response: {                
@@ -49,7 +49,7 @@ async function handleGetUserNotifications (req, res){
             }
         });
     } catch (error) {
-        res.status(500).json({
+        res.status(200).json({
             status: false,
             message: 'Server error', 
             response: {                

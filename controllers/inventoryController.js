@@ -10,7 +10,7 @@ async function getInventoryByStatus (req, res) {
         const loggedInUsers = req.userId;
 
         if (!['complete', 'ongoing', 'current'].includes(status)) {
-            return res.status(400).json({ 
+            return res.status(200).json({ 
                 status: false,
                 message: 'Invalid inventory status',
                 response: null
@@ -33,7 +33,7 @@ async function getInventoryByStatus (req, res) {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({
+        res.status(200).json({
             status: false,
             message: 'Server error', 
             response: {
@@ -50,7 +50,7 @@ async function updateInventory(req, res) {
         const { quantity, status } = req.body;
 
         if (!inventoryId) {
-            return res.status(400).json({
+            return res.status(200).json({
                 status: false,
                 message: 'Inventory ID is required'
             });
@@ -58,7 +58,7 @@ async function updateInventory(req, res) {
 
         const inventory = await Inventory.findById(inventoryId);
         if (!inventory) {
-            return res.status(404).json({
+            return res.status(200).json({
                 status: false,
                 message: 'Inventory not found'
             });
@@ -97,7 +97,7 @@ async function updateInventory(req, res) {
 
     } catch (error) {
         console.error('Error updating inventory:', error);
-        res.status(500).json({
+        res.status(200).json({
             status: false,
             message: 'Server error while updating inventory',
             response: {                
