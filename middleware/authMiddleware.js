@@ -5,7 +5,7 @@ async function authmiddleware(req, res, next) {
     const authHeader = req.headers['authorization'];
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(400).json({ message: 'Unauthorized access' });
+        return res.status(200).json({ message: 'Unauthorized access' });
     }
 
     const token = authHeader.split('Bearer ')[1];
@@ -13,13 +13,13 @@ async function authmiddleware(req, res, next) {
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
             console.error("JWT verification error:", err);
-            return res.status(400).json({ message: "Forbidden Invalid token", error: err });
+            return res.status(200).json({ message: "Forbidden Invalid token", error: err });
         }
 
         req.userId = decoded.userId || decoded.id; 
 
         if (!req.userId) {
-            return res.status(400).json({ message: "UserId not found in token" });
+            return res.status(200).json({ message: "UserId not found in token" });
         }
 
         next();
