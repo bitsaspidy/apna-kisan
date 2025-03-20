@@ -68,7 +68,10 @@ async function handleOtpVerification(req, res) {
         return res.status(400).json({
             status: false,
             message: "Phone number and OTP are required",
-            response: null
+            response: {
+                userId: "",
+                token: "",
+            }
         });
     }
 
@@ -81,7 +84,10 @@ async function handleOtpVerification(req, res) {
             return res.status(400).json({
                 status: false,
                 message: "Invalid OTP",
-                response: null,
+                response: {
+                    userId: "",
+                    token: "",
+                }
             });
         }
 
@@ -91,7 +97,10 @@ async function handleOtpVerification(req, res) {
             return res.status(400).json({
               status: false,
               message: "OTP has expired",
-              response: null
+              response: {
+                userId: "",
+                token: "",
+            }
             });
           }
           await Otp.deleteOne({ _id: otpRecord._id });
@@ -150,7 +159,14 @@ async function handleUserRegister(req, res) {
         return res.status(400).json({
             status: false,
             message: "Please enter full details",
-            response: null
+            response: {
+                userId: '',
+                phonenumber: '',
+                name: '',
+                location: '',
+                role: '',
+                token: ''
+            }
         });
     }
 
@@ -160,7 +176,14 @@ async function handleUserRegister(req, res) {
         return res.status(400).json({
             status: false,
             message: "Phone number must be exactly 10 digits.",
-            response: null
+            response: {
+                userId: '',
+                phonenumber: '',
+                name: '',
+                location: '',
+                role: '',
+                token: ''
+            }
         });
     }
 
@@ -173,7 +196,14 @@ async function handleUserRegister(req, res) {
             return res.status(400).json({
                 status: false,
                 message: "Phone number already exists",
-                response: null
+                response: {
+                    userId: '',
+                    phonenumber: '',
+                    name: '',
+                    location: '',
+                    role: '',
+                    token: ''
+                }
             });
         }
 
