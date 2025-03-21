@@ -15,6 +15,7 @@ router.put('/update/:productId',authmiddleware, upload.array('images', 5), handl
 router.delete('/delete/:productId',authmiddleware, handleDeleteProduct);
 router.get('/search', authmiddleware, translateMiddleware, searchProduct);
 
+// Category Routes
 router.post('/category/add', handleAddNewProductCategory);
 router.get('/all-category', handleGetAllCategory);
 router.put('/category/update/:categoryId', handleUpdateProductCategory);
