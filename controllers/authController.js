@@ -205,6 +205,8 @@ async function handleUserRegister(req, res) {
             });
         }
 
+        role = role.toLowerCase();
+
         user = new User({
             phonenumber,
             name,
