@@ -14,7 +14,7 @@ async function handleUserLogin(req, res) {
 
     if (!phonenumber) {
         console.log('Phone number not provided');
-        return res.status(400).json({
+        return res.status(200).json({
             status: false,
             message: "Please enter Phone number",
             response: null
@@ -25,7 +25,7 @@ async function handleUserLogin(req, res) {
 
     if (!phoneRegex.test(phonenumber)) {
         console.log('Invalid phone number:', phonenumber);
-        return res.status(400).json({
+        return res.status(200).json({
             status: false,
             message: "Phone number must be exactly 10 digits.",
             response: null
@@ -51,7 +51,7 @@ async function handleUserLogin(req, res) {
         });
     } catch (error) {
         console.error('Error generating OTP:', error);
-        return res.status(500).json({
+        return res.status(200).json({
             status: false,
             message: "Server error while generating OTP",
             response: null
@@ -67,7 +67,7 @@ async function handleOtpVerification(req, res) {
     const { phonenumber, otp } = req.body;
 
     if (!phonenumber || !otp) {
-        return res.status(400).json({
+        return res.status(200).json({
             status: false,
             message: "Phone number and OTP are required",
             response: {
@@ -83,7 +83,7 @@ async function handleOtpVerification(req, res) {
         // const storedOtp = otpStore[phonenumber];
 
         if (!otpRecord) {
-            return res.status(400).json({
+            return res.status(200).json({
                 status: false,
                 message: "Invalid OTP",
                 response: {
@@ -96,7 +96,7 @@ async function handleOtpVerification(req, res) {
         if (otpRecord.expiresAt < new Date()) {
             // OTP expired
             await Otp.deleteOne({ _id: otpRecord._id }); // optional: clean up
-            return res.status(400).json({
+            return res.status(200).json({
               status: false,
               message: "OTP has expired",
               response: {
@@ -143,7 +143,7 @@ async function handleOtpVerification(req, res) {
 
     } catch (error) {
         console.error('Error during OTP verification:', error);
-        return res.status(500).json({
+        return res.status(200).json({
             status: false,
             message: "Server error during OTP verification",
             response: {
@@ -159,11 +159,11 @@ async function handleOtpVerification(req, res) {
  */
 async function handleUserRegister(req, res) {
     await dbConnect(); // Ensure DB connection before any DB operation
-    const { phonenumber, name, role, location } = req.body;
+    let { phonenumber, name, role, location } = req.body;
 
     if (!phonenumber || !name || !role || !location) {
         console.log('Incomplete details:', req.body);
-        return res.status(400).json({
+        return res.status(200).json({
             status: false,
             message: "Please enter full details",
             response: {
@@ -177,7 +177,7 @@ async function handleUserRegister(req, res) {
 
     if (!phoneRegex.test(phonenumber)) {
         console.log('Invalid phone number:', phonenumber);
-        return res.status(400).json({
+        return res.status(200).json({
             status: false,
             message: "Phone number must be exactly 10 digits.",
             response: {
@@ -193,8 +193,9 @@ async function handleUserRegister(req, res) {
         let user = await User.findOne({ phonenumber });
         console.timeEnd('MongoFindUser');
 
+        role = role.toLowerCase();
         if (user) {
-            return res.status(400).json({
+            return res.status(200).json({
                 status: false,
                 message: "Phone number already exists",
                 response: {
@@ -232,7 +233,7 @@ async function handleUserRegister(req, res) {
         });
     } catch (error) {
         console.error('Error during registration:', error);
-        return res.status(500).json({
+        return res.status(200).json({
             status: false,
             message: "Server error during registration",
             response: {
@@ -248,14 +249,14 @@ async function handleEditProfile(req, res) {
     const { name, phonenumber, location } = req.body;
 
     if (!name && !phonenumber && !location) {
-        return res.status(400).json({ status: "error", message: "Please provide data to update" });
+        return res.status(200).json({ status: "error", message: "Please provide data to update" });
     }
 
     try {
         const user = await User.findById(req.userId);
 
         if (!user) {
-            return res.status(404).json({ status: "error", message: "User not found" });
+            return res.status(200).json({ status: "error", message: "User not found" });
         }
 
         if (name) user.name = name;
@@ -275,7 +276,7 @@ async function handleEditProfile(req, res) {
             }
         });
     } catch (err) {
-        res.status(500).json({
+        res.status(200).json({
             status: false,
             message: "Error updating profile",
             response: null

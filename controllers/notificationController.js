@@ -9,7 +9,7 @@ async function handleSendNotification(req, res){
         const { userId, title, message } = req.body;
 
         if (!userId || !title || !message) {
-            return res.status(400).json({
+            return res.status(200).json({
                 status: false, 
                 message: 'All fields are required!' 
             });
@@ -27,7 +27,7 @@ async function handleSendNotification(req, res){
         });
 
     } catch (error) {
-        res.status(500).json({
+        res.status(200).json({
             status: false, 
             message: 'Server error',
             response: {                
@@ -40,11 +40,8 @@ async function handleSendNotification(req, res){
 // Get notifications for a user
 async function handleGetUserNotifications (req, res){
     await dbConnect(); // ✅ dbConnect called
-    try {
-        const { userId } = req.params;
-
-        const notifications = await Notification.find({ userId }).sort({ createdAt: -1 });
-
+    try {   
+        const notifications = await Notification.find({ userId: req.userId });
         res.status(200).json({
             status: true,
             response: {
@@ -52,7 +49,7 @@ async function handleGetUserNotifications (req, res){
             }
         });
     } catch (error) {
-        res.status(500).json({
+        res.status(200).json({
             status: false,
             message: 'Server error', 
             response: {                

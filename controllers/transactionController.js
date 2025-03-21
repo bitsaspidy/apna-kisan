@@ -17,7 +17,7 @@ async function handleAddTransactionDetail(req, res) {
         });
     
         await newTransaction.save();
-        res.status(201).json({
+        res.status(200).json({
           status: true, 
           message: "Transaction Added Successfully", 
           response: {
@@ -25,7 +25,7 @@ async function handleAddTransactionDetail(req, res) {
           }
         });
       } catch (error) {
-        res.status(500).json({
+        res.status(200).json({
           status: false,
           message: "Server Error", 
           response: {                
@@ -50,7 +50,7 @@ async function handlereceiveTransactionDetail(req, res) {
           }
         });
       } catch (error) {
-        res.status(500).json({
+        res.status(200).json({
           status: false,
           message: "Server Error", 
           response: {

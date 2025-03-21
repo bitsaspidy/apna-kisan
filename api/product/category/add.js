@@ -1,8 +1,8 @@
-import { handleUserLogin } from '../../controllers/authController.js';
+import { handleAddNewProductCategory } from '../../../controllers/productCategoryController';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    return handleUserLogin(req, res);
+    return handleAddNewProductCategory(req, res);
   }
 
   res.setHeader('Allow', ['POST']);

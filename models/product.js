@@ -10,9 +10,9 @@ const productSchema = new mongoose.Schema({
         type: String, 
         required: true 
     },
-    category: { 
-        type: String, 
-        enum: ['category1', 'category2'], 
+    categoryId: { 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ProductCategory', 
         required: true 
     },
     description: { 

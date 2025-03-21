@@ -5,7 +5,7 @@ import { handleAddTransactionDetail } from '../../controllers/transactionControl
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
+    return res.status(200).end(`Method ${req.method} Not Allowed`);
   }
 
   try {
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Error in Add Transaction:', error);
-    return res.status(500).json({
+    return res.status(200).json({
       status: 'error',
       message: 'Server error',
       error: error.message
