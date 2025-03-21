@@ -111,7 +111,7 @@ async function handleOtpVerification(req, res) {
         console.timeEnd('MongoFindOne');
 
         if (!user) {
-            return res.status(400).json({
+            return res.status(200).json({
                 status: false,
                 message: "OTP verified! Please register first",
                 response: {
