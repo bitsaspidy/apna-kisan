@@ -3,6 +3,7 @@ import dbConnect from '../lib/mongodb';
 
 
 async function handleAddTransactionDetail(req, res) {
+  dbConnect();
     try {
         const { referenceNo, senderName, transactionId, amount, recieverId, paymentMethod } = req.body;
     
@@ -36,6 +37,7 @@ async function handleAddTransactionDetail(req, res) {
 };
 
 async function handlereceiveTransactionDetail(req, res) {
+  dbConnect();
     try {
         const transactions = await Transaction.find({ recieverId: req.userId }).sort({ createdAt: -1 });
 
