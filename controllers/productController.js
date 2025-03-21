@@ -2,26 +2,33 @@ const fs = require('fs');
 const path = require('path');
 const Product = require('../models/product');
 const Inventory = require('../models/inventory');
+const ProductCategory = require('../models/ProductCategory');
 import dbConnect from '../lib/mongodb';
 
 // Add Product
 async function handleAddNewProduct(req, res) {
     await dbConnect(); // ✅ dbConnect called
-    const { productname, category, description, quantity, priceperquantity } = req.body;
+    const { productname, categoryName, description, quantity, priceperquantity } = req.body;
     const imagePaths = req.files ? req.files.map(file => file.path) : [];
 
-    if ( !productname || !category || !description || !quantity || !priceperquantity) {
+    if ( !productname || !categoryName || !description || !quantity || !priceperquantity) {
         return res.status(200).json({
             status: false, 
             message: "Please fill full details"
         });
     }
 
+    const categoryDoc = await ProductCategory.findOne({ name: categoryName });
+
+    if (!categoryDoc) {
+        return res.status(404).json({ status: false, message: 'Category not found' });
+    }
+
     try {
         const product = new Product({
             userId: req.userId,
             productname,
-            category,
+            categoryId: categoryDoc._id,
             description,
             quantity,
             priceperquantity,
@@ -63,11 +70,14 @@ async function handleGetAllProducts(req, res) {
     await dbConnect(); // ✅ dbConnect called
     try {
         const products = await Product.find();
-        const productList = products.map(product => ({
+        const productList = await Promise.all(products.map(async product => {
+            const category = await ProductCategory.findById(product.categoryId);
+            return {
             ProductName: product.productname,
-            Category: product.category,
+            Category: category ? category.name : 'Unknown',
             Description: product.description,
             Price: product.priceperquantity
+            };
         }));
         res.status(200).json({
             status: true,
@@ -90,9 +100,18 @@ async function handleGetAllProducts(req, res) {
 async function handleGetProductByCategory (req, res) {
     await dbConnect(); // ✅ dbConnect called
     try {
-        const { category } = req.params;
+        const { categoryName } = req.params;
+        if (!categoryName) {
+            return res.status(400).json({ status: "error", message: "Category name is required" });
+        }
+        const categoryDoc = await ProductCategory.findOne({ name: categoryName });
 
-        const products = await Product.find({ category });
+        if (!categoryDoc) {
+            return res.status(404).json({ status: false, message: 'Category not found' });
+        }
+    
+
+        const products = await Product.find({ categoryId: categoryDoc._id });
 
         if (products.length === 0) {
             return res.status(200).json({
@@ -129,11 +148,21 @@ async function handleGetProductByCategory (req, res) {
 async function handleGetUserProducts(req, res) {
     await dbConnect(); // ✅ dbConnect called
     try {
-        const products = await Product.find({ userId: req.userId });
+        const products = await Product.find({userId: req.userId});
+
+        const productList = await Promise.all(products.map(async product => {
+            const category = await ProductCategory.findById(product.categoryId);
+            return {
+            ProductName: product.productname,
+            Category: category ? category.name : 'Unknown',
+            Description: product.description,
+            Price: product.priceperquantity
+            };
+        }));
         res.status(200).json({
             status: true,
             response: {
-                products
+                productList
             }
         });
     } catch (err) {
@@ -156,7 +185,7 @@ async function handleUpdateProduct(req, res) {
     const { productId } = req.params;
     const {
         productname,
-        category,
+        categoryName,
         description,
         quantity,
         priceperquantity,
@@ -232,7 +261,15 @@ async function handleUpdateProduct(req, res) {
         }
 
         if (productname) product.productname = productname;
-        if (category) product.category = category;
+        if (categoryName) {
+            const categoryDoc = await ProductCategory.findOne({ name: categoryName });
+
+            if (!categoryDoc) {
+                return res.status(404).json({ status: false, message: 'Category not found' });
+            }
+
+            product.categoryId = categoryDoc._id;
+        }
         if (description) product.description = description;
 
         if (quantity !== undefined && !isNaN(quantity)) {
@@ -315,10 +352,13 @@ async function searchProduct(req, res){
     try {
         const searchRegex = new RegExp(searchQuery, 'i'); // case-insensitive
 
+        const matchingCategories = await ProductCategory.find({ name: searchRegex });
+        const matchingCategoryIds = matchingCategories.map(cat => cat._id);
+
         let query = {
             $or: [
                 { productname: searchRegex },
-                { category: searchRegex },
+                { categoryId: { $in: matchingCategoryIds } },
                 { description: searchRegex }
             ]
         };
@@ -328,7 +368,7 @@ async function searchProduct(req, res){
             query.$or.push({ priceperquantity: Number(searchQuery) });
         }
 
-        const results = await Product.find(query);
+        const results = await Product.find(query).populate('categoryId', 'name');
 
         if (results.length === 0) {
             return res.status(200).json({
@@ -338,12 +378,19 @@ async function searchProduct(req, res){
              });
         }
 
+        const formattedResults = results.map(product => ({
+            ProductName: product.productname,
+            Category: product.categoryId ? product.categoryId.name : 'Unknown',
+            Description: product.description,
+            Price: product.priceperquantity
+        }));
+
         res.status(200).json({
             status: true,
             message: 'Search successful',
             response: {
-                totalResults: results.length,
-                result: results
+                totalResults: formattedResults.length,
+                result: formattedResults
             }
         });
 
