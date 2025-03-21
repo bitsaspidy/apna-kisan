@@ -13,6 +13,7 @@ async function handleUserLogin(req, res) {
     const { phonenumber } = req.body;
 
     if (!phonenumber) {
+        console.log('Phone number not provided');
         return res.status(400).json({
             status: false,
             message: "Please enter Phone number",
@@ -23,6 +24,7 @@ async function handleUserLogin(req, res) {
     const phoneRegex = /^\d{10}$/;
 
     if (!phoneRegex.test(phonenumber)) {
+        console.log('Invalid phone number:', phonenumber);
         return res.status(400).json({
             status: false,
             message: "Phone number must be exactly 10 digits.",
@@ -160,6 +162,7 @@ async function handleUserRegister(req, res) {
     const { phonenumber, name, role, location } = req.body;
 
     if (!phonenumber || !name || !role || !location) {
+        console.log('Incomplete details:', req.body);
         return res.status(400).json({
             status: false,
             message: "Please enter full details",
@@ -173,6 +176,7 @@ async function handleUserRegister(req, res) {
     const phoneRegex = /^\d{10}$/;
 
     if (!phoneRegex.test(phonenumber)) {
+        console.log('Invalid phone number:', phonenumber);
         return res.status(400).json({
             status: false,
             message: "Phone number must be exactly 10 digits.",
@@ -184,6 +188,7 @@ async function handleUserRegister(req, res) {
     }
 
     try {
+        console.log('Checking if user exists:', phonenumber);
         console.time('MongoFindUser');
         let user = await User.findOne({ phonenumber });
         console.timeEnd('MongoFindUser');
@@ -212,7 +217,7 @@ async function handleUserRegister(req, res) {
         user.token = token;
 
         await user.save();
-
+        console.log('User registered:', user);
         return res.status(200).json({
             status: true,
             message: "Registration successful.",
