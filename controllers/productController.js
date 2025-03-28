@@ -15,7 +15,31 @@ const normalizePath = (filePath) => {
 // Add Product
 async function handleAddNewProduct(req, res) {
     const { productname, categoryName, description, quantity, priceperquantity, quantityUnit } = req.body;
-    const imagePaths = req.files ? req.files.map(file => file.path) : [];
+    const imageFiles = req.files?.filter(file => file.fieldname === 'images') || [];
+
+    if (imageFiles.length  == 0) {
+        return res.status(200).json({
+            status: false,
+            message: 'Please provide images',
+            response: []
+        });
+    }
+
+    if (imageFiles.length > 5) {
+        imageFiles.forEach(file => {
+            fs.unlink(path.resolve(file.path), err => {
+                if (err) console.error('Error deleting file:', err);
+            });
+        });
+
+        return res.status(200).json({
+            status: false,
+            message: 'You can upload a maximum of 5 images only!',
+            response: []
+        });
+    }
+
+    const imagePaths = imageFiles.map(file => file.path);
 
     if (!productname || !categoryName || !description || !quantity || !priceperquantity || !quantityUnit) {
         return res.status(200).json({ status: false , message: "Please fill full details", response: null });
@@ -50,7 +74,7 @@ async function handleAddNewProduct(req, res) {
         const imageDocuments = [];
 
         for (const path of imagePaths) {
-            const nextProductImageId = await getNextSequence('productimageid'); // ✅ call for each image
+            const nextProductImageId = await getNextSequence('productimageid');
             imageDocuments.push({
                 productId: product._id,
                 imageUrl: path,
@@ -296,52 +320,62 @@ async function handleGetUserProducts(req, res) {
     }
 };
 
-
 async function handleUpdateProduct(req, res) {
-
-    const { productId } = req.params;
-    const {
-        productname,
-        categoryName,
-        description,
-        quantity,
-        priceperquantity,
-        quantityUnit,
-        deleteImage
-    } = req.body;
-
-    const newImagePaths = req.files ? req.files.map(file => normalizePath(file.path)) : [];
-
-    let imagesToDeleteArray = [];
-
-    if (deleteImage) {
-        if (typeof deleteImage === 'string') {
-            try {
-                imagesToDeleteArray = JSON.parse(deleteImage);
-            } catch (e) {
-                imagesToDeleteArray = [deleteImage];
-            }
-        } else if (Array.isArray(deleteImage)) {
-            imagesToDeleteArray = deleteImage;
-        }
-    }
-
-    if (!productId) {
-        return res.status(200).json({ status: false, message: 'Product ID is required', response: null });
-    }
-
     try {
-        const product = await Product.findOne({productID: productId});
+        const { productId } = req.params;
+        const {
+            productname,
+            categoryName,
+            description,
+            quantity,
+            priceperquantity,
+            quantityUnit,
+            deleteImage
+        } = req.body;
 
+        let imagesToDeleteArray = [];
+        if (deleteImage) {
+            if (typeof deleteImage === 'string') {
+                try {
+                    imagesToDeleteArray = JSON.parse(deleteImage);
+                } catch (e) {
+                    imagesToDeleteArray = [deleteImage];
+                }
+            } else if (Array.isArray(deleteImage)) {
+                imagesToDeleteArray = deleteImage;
+            }
+        }
+
+        const newImageFiles = req.files?.filter(file => file.fieldname === 'images') || [];
+        const newImagePaths = newImageFiles.map(file => normalizePath(file.path));
+
+        const product = await Product.findOne({ productID: productId });
         if (!product) {
-            return res.status(200).json({ status: false, message: 'Product not found' , response: null});
+            return res.status(200).json({ status: false, message: 'Product not found', response: null });
         }
 
         if (product.userId.toString() !== req.userId) {
-            return res.status(403).json({ status: false, message: 'Unauthorized', response: null});
+            return res.status(200).json({ status: false, message: 'Unauthorized', response: null });
         }
 
-        // ✅ Delete selected images
+        const currentImageCount = await ProductImage.countDocuments({ productId: product._id });
+
+        const remainingAfterDelete = currentImageCount - (imagesToDeleteArray?.length || 0);
+        const totalAfterAddingNew = remainingAfterDelete + newImagePaths.length;
+
+        if (totalAfterAddingNew > 5) {
+            newImageFiles.forEach(file => {
+                fs.unlink(path.resolve(file.path), err => {
+                    if (err) console.error('Failed to delete uploaded file:', err);
+                });
+            });
+
+            return res.status(200).json({
+                status: false,
+                message: 'You can upload a maximum of 5 images only!',
+                response: null
+            });
+        }
         if (imagesToDeleteArray.length > 0) {
             for (const imageId of imagesToDeleteArray) {
                 const parsedId = Number(imageId);
@@ -349,9 +383,12 @@ async function handleUpdateProduct(req, res) {
                     console.warn(`Skipping invalid image ID: ${imageId}`);
                     continue;
                 }
-            
-                const imageDoc = await ProductImage.findOneAndDelete({ productImageID: parsedId, productId: product._id });
-            
+
+                const imageDoc = await ProductImage.findOneAndDelete({
+                    productImageID: parsedId,
+                    productId: product._id
+                });
+
                 if (imageDoc) {
                     const absolutePath = path.resolve(imageDoc.imageUrl);
                     fs.unlink(absolutePath, (err) => {
@@ -371,54 +408,32 @@ async function handleUpdateProduct(req, res) {
                 productImageID: nextImageId
             });
         }
-        if (imageDocuments.length > 0) await ProductImage.insertMany(imageDocuments);
+        if (imageDocuments.length > 0) {
+            await ProductImage.insertMany(imageDocuments);
+        }
 
         if (productname) product.productname = productname;
         if (categoryName) {
             const categoryDoc = await ProductCategory.findOne({ name: categoryName });
-
             if (!categoryDoc) {
                 return res.status(200).json({ status: false, message: 'Category not found', response: null });
             }
-
             product.categoryId = categoryDoc._id;
         }
-
         if (description) product.description = description;
-        if (quantityUnit) product.quantityUnit = quantityUnit;
-
-        if (quantity !== undefined && !isNaN(quantity)) {
-            product.quantity = quantity;
-
-            const inventory = await Inventory.findOne({ productId: product._id });
-
-            if (inventory) {
-                inventory.quantity = quantity;
-                await inventory.save();
-                console.log(`Inventory updated for product ${product._id}`);
-            } else {
-                console.warn(`No inventory record found for product ${product._id}`);
-            }
-        }
-        if (quantityUnit !== undefined && quantityUnit == '') {
-            product.quantityUnit = quantityUnit;
-
-            const inventory = await Inventory.findOne({ productId: product._id });
-
-            if (inventory) {
-                inventory.quantityUnit = quantityUnit;
-                await inventory.save();
-                console.log(`Inventory updated for product ${product._id}`);
-            } else {
-                console.warn(`No inventory record found for product ${product._id}`);
-            }
-        }
-
-        if (priceperquantity !== undefined && !isNaN(priceperquantity)) {
-            product.priceperquantity = priceperquantity;
-        }
+        if (quantity !== undefined && !isNaN(quantity)) product.quantity = quantity;
+        if (quantityUnit !== undefined) product.quantityUnit = quantityUnit;
+        if (priceperquantity !== undefined && !isNaN(priceperquantity)) product.priceperquantity = priceperquantity;
 
         await product.save();
+
+        const inventory = await Inventory.findOne({ productId: product._id });
+        if (inventory) {
+            if (quantity !== undefined && !isNaN(quantity)) inventory.quantity = quantity;
+            if (quantityUnit !== undefined) inventory.quantityUnit = quantityUnit;
+            await inventory.save();
+        }
+
         const productImages = await ProductImage.find({ productId: product._id });
 
         const productResponse = {
@@ -433,16 +448,14 @@ async function handleUpdateProduct(req, res) {
                 productImageId: img.productImageID.toString(),
                 productImagePath: img.imageUrl
             })),
-            createdAt:  moment(product.createdAt).format('YYYY-MM-DD HH:mm:ss'),
-            updatedAt:  moment(product.updatedAt).format('YYYY-MM-DD HH:mm:ss')
+            createdAt: moment(product.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+            updatedAt: moment(product.updatedAt).format('YYYY-MM-DD HH:mm:ss')
         };
 
         res.status(200).json({
             status: true,
             message: 'Product updated successfully',
-            response: {                
-                productResponse
-            }
+            response: { productResponse }
         });
 
     } catch (err) {
@@ -450,14 +463,11 @@ async function handleUpdateProduct(req, res) {
         res.status(500).json({
             status: false,
             message: 'Error updating product',
-            response: {                
-                error: err.message
-            }
+            response: { error: err.message }
         });
     }
 }
 
-// Delete Product
 async function handleDeleteProduct (req, res) {
     const { productId } = req.params;
 
@@ -486,7 +496,7 @@ async function handleDeleteProduct (req, res) {
             response: null
             });
     } catch (err) {
-        res.status(200).json({ 
+        res.status(500).json({ 
             status: false,
             message: 'Error deleting product',
             response: {

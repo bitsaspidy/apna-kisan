@@ -79,9 +79,6 @@ async function handleOtpVerification(req, res) {
          });
     }
 
-
-
-
     try {
         const otpRecord = await Otp.findOne({ phonenumber, otp });
 

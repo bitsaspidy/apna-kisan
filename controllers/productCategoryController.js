@@ -79,7 +79,7 @@ async function handleGetAllCategory(req, res) {
 
                     categoryName: item.name,
                     categoryId: item.categoryID,
-                    // image: item.image ? item.image : 'no images' ,
+                    image: item.image ? item.image : 'no images' ,
                     createdAt:  moment(item.createdAt).format('YYYY-MM-DD HH:mm:ss'),
                     updatedAt:  moment(item.updatedAt).format('YYYY-MM-DD HH:mm:ss')
 
