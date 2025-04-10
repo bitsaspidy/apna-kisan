@@ -1,5 +1,6 @@
 const Notification = require('../models/notification');
 const getNextSequence = require("../utils/counterService");
+const moment = require('moment');
 
 
 // Send notification
@@ -18,14 +19,21 @@ async function handleSendNotification(req, res){
             message,
             notificationID: nextNotificationId, 
         });
+
+        const formatedlist = [{
+            notificationID : newNotification.notificationID,
+            userId : newNotification.userId,
+            title: newNotification.title,
+            message: newNotification.message,
+            createdAt:  moment(newNotification.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+            updatedAt:  moment(newNotification.updatedAt).format('YYYY-MM-DD HH:mm:ss')
+        }]
         await newNotification.save();
 
         res.status(200).json({
             status: true, 
             message: 'Notification sent!', 
-            response: {
-            notification: newNotification                 
-            }  
+            response: formatedlist                 
         });
 
     } catch (error) {
@@ -42,13 +50,27 @@ async function handleSendNotification(req, res){
 // Get notifications for a user
 async function handleGetUserNotifications (req, res){
     try {   
-        const notifications = await Notification.find({ userId: req.userId });
+        const notification = await Notification.find({ userId: req.userId });
+        if(!notification.length){
+            return res.status(200).json({
+                status: false,
+                message: `No Notifications`,
+                Response: []
+            });
+        }
+
+        const formatedlist = await notification.map(item => ({
+                notificationID : item.notificationID,
+                userId : item.userId,
+                title: item.title,
+                message: item.message,
+                createdAt:  moment(item.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+                updatedAt:  moment(item.updatedAt).format('YYYY-MM-DD HH:mm:ss')
+        }))
         res.status(200).json({
             status: true,
             message: "all notifications",
-            response: {
-                notifications                
-            }
+            response: formatedlist                
         });
     } catch (error) {
         res.status(200).json({

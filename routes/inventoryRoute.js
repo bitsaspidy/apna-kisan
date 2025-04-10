@@ -4,6 +4,6 @@ const {getInventoryByStatus, updateInventory } = require('../controllers/invento
 const authMiddleware = require('../middleware/authMiddleware');
 
 router.get('/:status', authMiddleware, getInventoryByStatus);
-router.put('/update/:inventoryId', authMiddleware, updateInventory); 
+router.put('/update/:inventoryID', authMiddleware, updateInventory); 
 
 module.exports = router;

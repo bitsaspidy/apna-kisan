@@ -2,6 +2,7 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const Otp = require("../models/otp");
 const JWT_SECRET = process.env.JWT_SECRET;
+const moment = require('moment');
 
 const otpStore = {}; // Temporary store for OTPs
 
@@ -56,7 +57,7 @@ async function handleUserLogin(req, res) {
         });
     } catch (error) {
         console.error('Error generating OTP:', error);
-        return res.status(200).json({
+        return res.status(500).json({
             status: false,
             message: "Server error while generating OTP",
             response: null
@@ -232,7 +233,7 @@ async function handleUserRegister(req, res) {
         });
     } catch (error) {
         console.error('Error during registration:', error);
-        return res.status(200).json({
+        return res.status(500).json({
             status: false,
             message: "Server error during registration",
             response: {
@@ -244,9 +245,9 @@ async function handleUserRegister(req, res) {
 };
 
 async function handleEditProfile(req, res) {
-    const { fullname, phonenumber, location } = req.body;
+    const { fullname, location } = req.body;
 
-    if (!fullname && !phonenumber && !location) {
+    if (!fullname  && !location) {
         return res.status(200).json({ status: false, message: "Please provide data to update" , response: null});
     }
 
@@ -258,20 +259,25 @@ async function handleEditProfile(req, res) {
         }
 
         if (fullname) user.name = fullname;
-        if (phonenumber) user.phonenumber = phonenumber;
         if (location) user.location = location;
+
+        const userlist = {
+            userId: user._id,
+            fullname: user.name,
+            phonenumber: user.phonenumber,
+            location: user.location,
+            role: user.role,
+            createdAt:  moment(user.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+            updatedAt:  moment(user.updatedAt).format('YYYY-MM-DD HH:mm:ss')
+
+        }
 
         await user.save();
 
         res.status(200).json({
             status: true,
             message: "Profile updated successfully",
-            user: {
-                id: user._id,
-                fullname: user.name,
-                phonenumber: user.phonenumber,
-                location: user.location
-            }
+            response: userlist
         });
     } catch (err) {
         res.status(500).json({
@@ -282,6 +288,52 @@ async function handleEditProfile(req, res) {
     }
 };
 
+async function handleGetUserProfile(req, res) {
+    try {
+        const userId = req.userId;
+
+        if (!userId) {
+            return res.status(200).json({
+                status: false,
+                message: "User ID not found in request",
+                response: null
+            });
+        }
+
+        const user = await User.findById(userId).select('-__v -token');
+
+        if (!user) {
+            return res.status(200).json({
+                status: false,
+                message: "User not found",
+                response: null
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: "User profile fetched successfully",
+            response: {
+                userId: user._id,
+                phonenumber: user.phonenumber,
+                name: user.name,
+                location: user.location,
+                role: user.role,
+                createdAt:  moment(user.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+                updatedAt:  moment(user.updatedAt).format('YYYY-MM-DD HH:mm:ss')
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+        return res.status(500).json({
+            status: false,
+            message: "Server error while fetching user profile",
+            response: null
+        });
+    }
+}
+
+
 
 
 module.exports = {
@@ -289,4 +341,5 @@ module.exports = {
     handleOtpVerification,
     handleUserRegister,
     handleEditProfile,
+    handleGetUserProfile,
 }

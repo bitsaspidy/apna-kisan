@@ -56,7 +56,11 @@ async function handlereceiveTranscationDetail(req, res) {
     const transaction = await Transaction.find({ recieverId: req.userId }).sort({ createdAt: -1 });
 
     if (transaction.length === 0) {
-        return res.status(200).json({ message: 'No Transcation was found' });
+        return res.status(200).json({
+            status: false,
+            message: 'No Transcation was found' ,
+            response: []
+          });
     }
     const transcationlist = transaction.map(item => ({
       TransactionID: item.TransactionID,
