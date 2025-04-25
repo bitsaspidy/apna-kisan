@@ -16,7 +16,7 @@ const inventorySchema = new mongoose.Schema({
     },
     status: { 
         type: String, 
-        enum: ['complete', 'ongoing', 'current'], 
+        enum: ['completed', 'ongoing', 'delivered'], 
         required: true 
     },
     userId: { 

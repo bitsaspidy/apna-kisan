@@ -53,7 +53,7 @@ async function handleGetUserNotifications (req, res){
         const notification = await Notification.find({ userId: req.userId });
         if(!notification.length){
             return res.status(200).json({
-                status: false,
+                status: true,
                 message: `No Notifications`,
                 Response: []
             });
@@ -73,7 +73,7 @@ async function handleGetUserNotifications (req, res){
             response: formatedlist                
         });
     } catch (error) {
-        res.status(200).json({
+        res.status(500).json({
             status: false,
             message: 'Server error', 
             response: {                

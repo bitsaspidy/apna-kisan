@@ -5,6 +5,7 @@ const ProductImage = require('../models/productImage');
 const Order = require('../models/order');
 const Inventory = require('../models/inventory');
 const getNextSequence = require('../utils/counterService');
+const ProductCartMeta = require('../models/productCartMeta');
 // const moment = require('moment');
 
 function generateOrderNo() {
@@ -90,6 +91,18 @@ async function handleCheckout(req, res) {
       cart.items = [];
       cart.totalCartPrice = 0;
       await cart.save();
+
+      await Promise.all(
+        items.map(async item => {
+          await ProductCartMeta.findOneAndUpdate(
+            { userId, productId: item.productId },
+            {
+              cart_status: false,
+              cart_quantity: 0
+            }
+          );
+        })
+      );
   
       res.status(200).json({
         status: true,

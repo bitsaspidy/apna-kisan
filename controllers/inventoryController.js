@@ -2,14 +2,14 @@ const Inventory = require('../models/inventory');
 const Product = require('../models/product');
 const moment = require('moment');
 const Order = require('../models/order');
+const ProductImage = require('../models/productImage');
 
-
-async function getInventoryByStatus(req, res) {
+  async function getInventoryByStatus(req, res) {
     try {
-      const { status } = req.params; // status = ongoing | current | complete
+      const { status } = req.params;
       const userId = req.userId;
   
-      if (!['complete', 'ongoing', 'current'].includes(status)) {
+      if (!['completed', 'ongoing', 'delivered'].includes(status)) {
         return res.status(200).json({
           status: false,
           message: 'Invalid inventory status',
@@ -27,34 +27,60 @@ async function getInventoryByStatus(req, res) {
   
       if (!inventoryList.length) {
         return res.status(200).json({
-          status: false,
+          status: true,
           message: 'No inventory found for this status',
           response: []
         });
       }
   // Loop each inventory and find buyer
   const formatted = await Promise.all(
-      inventoryList.map(async item => {
-        const order = await Order.findOne({
-          'items.productId': item.productId._id
-        });
-  
-        const buyerName = order?.user?.fullName || 'Not Available';
-  
+    inventoryList.map(async item => {
+      // Skip if productId is null
+      if (!item.productId || !item.productId._id) {
         return {
           inventoryID: item.inventoryID,
-          ProductName: item.productId?.productname,
-          Category: item.productId?.categoryId?.name || 'Unknown Category',
-          Price: item.productId?.priceperquantity,
+          ProductName: 'Unknown Product',
+          Category: 'Unknown Category',
+          Price: 'N/A',
+          productImage: null,
           quantity: item.quantity,
           quantityunit: item.quantityunit,
           InventoryStatus: item.status,
-          OrderedBy: buyerName, 
+          trader: {
+            traderName: order?.user?.fullname || 'Not Available',
+            traderMobile: order?.user?.mobile || 'Not Available',
+            traderLocation: order?.user?.address || 'Not Available'
+          },
           createdAt: moment(item.createdAt).format('YYYY-MM-DD HH:mm:ss'),
           updatedAt: moment(item.updatedAt).format('YYYY-MM-DD HH:mm:ss')
         };
-      })
-    );
+      }
+  
+      const order = await Order.findOne({
+        'items.productId': item.productId._id
+      });
+      const productImages = await ProductImage.find({ productId: item.productId._id });
+  
+  
+      return {
+        inventoryID: item.inventoryID,
+        ProductName: item.productId.productname,
+        Category: item.productId.categoryId?.name || 'Unknown Category',
+        Price: item.productId.priceperquantity,
+        productImage: productImages.length > 0 ? productImages[0].imageUrl : null,
+        quantity: item.quantity,
+        quantityunit: item.quantityunit,
+        InventoryStatus: item.status,
+        trader: {
+          traderName: order?.user?.fullName || 'Not Available',
+          traderMobile: order?.user?.mobile || 'Not Available',
+          traderLocation: order?.user?.address || 'Not Available'
+        },
+        createdAt: moment(item.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+        updatedAt: moment(item.updatedAt).format('YYYY-MM-DD HH:mm:ss')
+      };
+    })
+  );
   
       res.status(200).json({
         status: true,

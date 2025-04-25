@@ -194,6 +194,7 @@ async function viewCart(req, res) {
     }
 }
 
+
 async function updateCartQuantity(req, res) {
     try {
         const userId = req.userId;
@@ -222,16 +223,15 @@ async function updateCartQuantity(req, res) {
 
         const currentCartQty = item.quantity;
         const stockAvailable = product.quantity + currentCartQty; // total available to this user
-        const minQuantity = 1;
 
         if (quantity !== undefined) {
             // ✅ Prioritize direct quantity setting
             const requestedQty = parseInt(quantity);
         
-            if (isNaN(requestedQty) || requestedQty < minQuantity) {
+            if (isNaN(requestedQty) || requestedQty < 1) {
                 return res.status(200).json({
                     status: false,
-                    message: `Invalid quantity. Minimum quantity is ${minQuantity}.`,
+                    message: 'This product is not available is your code',
                     response: []
                 });
             }
@@ -260,13 +260,29 @@ async function updateCartQuantity(req, res) {
             product.quantity -= 1;
         
         } else if (operation === 'decrement') {
-            if (currentCartQty <= minQuantity) {
+            if (currentCartQty === 1) {
+                product.quantity += 1;
+                const removedItem = cart.items.splice(itemIndex, 1)[0];
+
+                await Promise.all([cart.save(), product.save()]);
+
+                await ProductCartMeta.findOneAndUpdate(
+                    { userId, productId: product._id },
+                    {
+                        cart_status: false,
+                        cart_quantity: 0
+                    }
+                );
+
                 return res.status(200).json({
-                    status: false,
-                    message: `Minimum quantity is ${minQuantity}. Cannot decrement further.`,
-                    response: []
+                    status: true,
+                    message: 'Item removed from cart (quantity was 1)',
+                    response: {
+                        removedProductID: product.productID
+                    }
                 });
             }
+
             item.quantity -= 1;
             product.quantity += 1;
         
@@ -278,13 +294,10 @@ async function updateCartQuantity(req, res) {
             });
         }
 
-        // 🔄 Update item price
         item.price = item.quantity * product.priceperquantity;
 
-        // 🔄 Update totalCartPrice
         cart.totalCartPrice = cart.items.reduce((acc, item) => acc + (item.price || 0), 0);
 
-        // 🔄 Save both
         await Promise.all([cart.save(), product.save()]);
 
         await ProductCartMeta.findOneAndUpdate(
@@ -296,11 +309,9 @@ async function updateCartQuantity(req, res) {
             { upsert: true, new: true }
         );
 
-        // 📸 Product Image
         const imageDoc = await ProductImage.findOne({ productId: product._id });
         const productimage = imageDoc ? imageDoc.imageUrl : null;
 
-        // 📦 Category Name
         const categoryDoc = await ProductCategory.findById(product.categoryId);
         const categoryName = categoryDoc ? categoryDoc.name : null;
 
